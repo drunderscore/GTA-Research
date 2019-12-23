@@ -1,4 +1,4 @@
-##### This research was done on patch 1.48, ScriptHook gameversion 50.
+##### This research was done on patch 1.27, ScriptHook gameversion 4.
 
 # Notifications in GTA V
 
@@ -12,18 +12,18 @@ This write-up is a technical description of how the internals of the notificatio
 The native `GAMEPLAY::GET_GAME_TIMER` is used to schedule notifications. It simply counts in milliseconds since the 'game started' (rough definition, however unimportant as its simply used as a timer).
 This **IS** effected by timescale (switching chars, radio station, selecting weapon, etc).
 
-## Next Notification Time (0x9070)
+## Next Notification Time (0x8A88)
 
-The global `0x9070` tracks the next time the script is allowed to send a notification. If one is sent successfully, this value is set to the **current game time**, plus 20000 (20 seconds).
+The global `0x8A88` tracks the next time the script is allowed to send a notification. If one is sent successfully, this value is set to the **current game time**, plus 20000 (20 seconds).
 This value is initialized VERY early on in the script, with the exact line below.
 
-`Global_9070 = GAMEPLAY::GET_GAME_TIMER() + 20000;`
+`Global_8A88 = GAMEPLAY::GET_GAME_TIMER() + 20000;`
 
 This means that a notification is **impossible** to be sent until 20 seconds after this script starting.
 
 ## Global Char Struct Array (0x20DD1)
 
-The global `0x1A045 + 0x6D8C (0x20DD1)` contains an array of some kind of structure. The elements have a size of `29`.
+The global `0x17C49 + 0x744E (0x1F097)` contains an array of some kind of structure. The elements have a size of `29`.
 
 I have not researched this very much, however it is important as seen below when referenced. A general outline of some important values is seen below.
 
@@ -43,9 +43,9 @@ The string `Michael` is GXT entry `CELL_101`, and his picture `CHAR_MICHAEL` is 
 
 This is essentially linking ped model hashes to other data. Other important data is probably stored here aswell.
 
-## Important Areas Array (0x8E4A)
+## Important Areas Array (0x8862)
 
-The global `0x8E4A` is an array of objects that are `5` in size, with a capacity of `76`.
+The global `0x8862` is an array of objects that are `5` in size, with a capacity of `76`.
 It contains 'important areas' that notifications can index in order to prevent them from being sent when the player is too close to one of these positions. _Example:_ Simion's first phone call to Franklin. Franklin can't be near Simion's place, OR his safehouse, for the call to be received.
 
 The objects are structued like this:
@@ -65,14 +65,14 @@ Offset 4 is usually used recursively to index this array. _Example:_ The first p
 
 These are the three types of notifications that the player is eligible to receive. They are all separated into arrays of their own data structures, however each type share the same base class.
 
-The array of text message objects is stored at `0x1A045 + 0x1E02 + 0x28B (0x1C0D2)`. The objects contained are `14` in size.
-The count of objects in the array is stored at `0x1A045 + 0x1E02 + 0x2FC (0x1C143)`.
+The array of text message objects is stored at `0x17C49 + 0x1738 + 0x28B (0x1960C)`. The objects contained are `14` in size.
+The count of objects in the array is stored at `0x17C49 + 0x1738 + 0x2FC (0x1967D)`.
 
-The array of email objects is stored at `0x1A045 + 0x1E02 + 0x362 (0x1C1A9)`. The objects contained are `10` in size.
-The count of objects in the array is stored at `0x1A045 + 0x1E02 + 0x2FD (0x1C144)`.
+The array of email objects is stored at `0x17C49 + 0x1738 + 0x2FD (0x1967E)`. The objects contained are `10` in size.
+The count of objects in the array is stored at `0x17C49 + 0x1738 + 0x362 (0x196E3)`.
 
-The array of phone call objects is stored at `0x1A045 + 0x1E02 (0x1BE47)`. The objects contained are `15` in size.
-The count of objects in the array is stored at `0x1A045 + 0x1E02 + 0x88 (0x1BECF)`.
+The array of phone call objects is stored at `0x17C49 + 0x1738 (0x19381)`. The objects contained are `15` in size.
+The count of objects in the array is stored at `0x17C49 + 0x1738 + 0x88 (0x19409)`.
 
 The basic structure is seen below. **This is obviously not complete.**
 

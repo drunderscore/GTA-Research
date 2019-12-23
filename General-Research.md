@@ -1,4 +1,4 @@
-##### This research was done on patch 1.48, ScriptHook gameversion 50.
+##### This research was done on patch 1.27, ScriptHook gameversion 4.
 
 # General knowledge of YSC scripts
 
@@ -18,6 +18,18 @@ Structs of variable size can be passed around and returned by functions.
 
 ## Hash
 
-This game uses `Jenkins one-at-a-time` hashing.
+This game uses `Jenkins one-at-a-time` hashing, used on many things within the game.
 
-More times than not, JOAAT hashes aren't hashed during runtime, and are already calculated, baked into the script. We actually **know** some of these, however, the decompiler used did not at the time. You will see these often as seemingly, large, even negative numbers.
+Model names, X360 natives (32-bit version of GTA), GXT entries, etc. Zorg's decompiler should know some of these and make a `joaat` function with the original string. However, sometimes it doesn't. Try to add a comment anywhere there is a hash with a missing translation.
+
+---
+
+## Misison Fail String (0x10B7D)
+
+This global is updated with the GXT entry of why the mission failed, shown on the fail screen.
+
+## Unknown Mission Global (0x15F8E)
+
+This global is set to `0` upon mission fail.
+
+Seems to be an internal value used for `flow_controller` and `mission_repeat_controller`
