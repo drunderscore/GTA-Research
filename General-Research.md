@@ -24,12 +24,10 @@ Model names, X360 natives (32-bit version of GTA), GXT entries, etc. Zorg's deco
 
 ---
 
-## Misison Fail String (0x10B7D)
+## Is Using Shop Counter (0x160C1)
 
-This global is updated with the GXT entry of why the mission failed, shown on the fail screen.
+This is increased by 1 whenever the player is **using** a shop. This usually means whenever you interact with the shop. (going into the clothes buy menu, going into the ammu-nation buy menu, in a hair cuttery and going to sit down in the chair, etc).
 
-## Unknown Mission Global (0x15F8E)
+## Is In Shop Counter (0x160C0)
 
-This global is set to `0` upon mission fail.
-
-Seems to be an internal value used for `flow_controller` and `mission_repeat_controller`
+This is increased by 1 whenever the player enters a shop. (ammu-nation, clothing store, hair cuttery, etc)
