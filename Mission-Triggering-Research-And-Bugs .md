@@ -101,7 +101,7 @@ void func_619(var uParam0, int iParam1, var uParam2, var uParam3, var uParam4)//
 
 ## mission_triggerer_a-d
 
-Now that we have `CURRENTLY_AVAILABLE_MISSIONS_ARRAY` with some missions that have `MISSION_CAN_BE_STARTED` set to 1, we need to actually check for specific conditions that will trigger mission execution.
+Now that we have `CURRENTLY_AVAILABLE_MISSIONS_ARRAY` with some missions that have `MISSION_CAN_BE_STARTED` set to `1`, we need to actually check for specific conditions that will trigger mission execution.
 Thats where mission_triggerers come to play.
 
 Inside any mission_triggerer's main loop (here `mission_triggerer_b` is used) you'll find `func_1()` which will look something like this:
@@ -254,37 +254,37 @@ void func_206(int iParam0, char* sParam1, int iParam2, int iParam3, int iParam4)
 All that's left is to request and start the script, `flow_controller` takes care of requesting scripts with `func_957()`:
 
 ```
-	if (Global_69700)
+if (Global_69700)
+{
+	if (!gameplay::are_strings_equal(&Global_69703, "NONE"))
 	{
-		if (!gameplay::are_strings_equal(&Global_69703, "NONE"))
+		if (Global_69713 == -1)
 		{
-			if (Global_69713 == -1)
+			func_962(&Global_69713, 2);
+		}
+		else
+		{
+			switch (func_961(Global_69713))
 			{
-				func_962(&Global_69713, 2);
-			}
-			else
-			{
-				switch (func_961(Global_69713))
-				{
-					case 1:
-						if (!cutscene::is_cutscene_active())
+				case 1:
+					if (!cutscene::is_cutscene_active())
+					{
+						iVar0 = func_189(); //gets current character
+						if (func_22(iVar0)) 
 						{
-							iVar0 = func_189(); //gets current character
-							if (func_22(iVar0)) 
+							if (Global_69709[iVar0] != -1) //if current character can start that mission
 							{
-								if (Global_69709[iVar0] != -1) //if current character can start that mission
-								{
-									script::request_script_with_name_hash(Global_82607[Global_69702 /*34*/].f_6); //requesting mission script
-									...
-								}
+								script::request_script_with_name_hash(Global_82607[Global_69702 /*34*/].f_6); //requesting mission script
+								...
 							}
 						}
-						...
 					}
+				...
 				}
 			}
 		}
 	}
+}
 ```
 
 Now we need to start the script and... as of now I've yet to find where mission scripts are actually started after being requested.
@@ -294,7 +294,7 @@ Now we need to start the script and... as of now I've yet to find where mission 
 [Video](https://youtu.be/BrZOtY-xAI0)
 
 The game doesn't want you to die during mission triggerring, for this reason some of the callbacks from `func_165()` will call a function that will make you invulnerable.
-Usually this function is called through intermediate function that also sets invulnerabilities to mission vehicles\peds\etc and sets `Global_88739` to 1.
+Usually this function is called through intermediate function that also sets invulnerabilities to mission vehicles\peds\etc and sets `Global_88739` to `1`.
 
 Let' look at the code:
 
@@ -340,10 +340,10 @@ void func_211(int iParam0)//Position - 0xBF9A
 Now let's look how the game strips those invulnerabilities:
 
 ```
-	if (Global_88739)
-	{
-		func_53(); // reverses func_210() and func_211()
-	}
+if (Global_88739)
+{
+	func_53(); // reverses func_210() and func_211()
+}
 ```
 
 
@@ -361,7 +361,7 @@ if (func_743(&Local_1252) && interior::is_valid_interior(interior::get_interior_
 }
 ```
 
-Here's our answer, for some reason 3-rd way calls `func_211()` directly, skipping `func_210` and as a result doesn't set `IS_CLEANUP_NEEDED` to 1 preventing the script from properly removing player's proofs.
+Here's our answer, for some reason "The third way" calls `func_211()` directly, skipping `func_210` and as a result doesn't set `IS_CLEANUP_NEEDED` to `1` preventing the script from properly removing player's proofs.
 In fact, that's the only mission that does this, curious.
 
 ## Bug 2 "Wrong Mission Start\Fail"
@@ -374,9 +374,9 @@ A quick search for mission fail reason string shows that fail was triggered from
 This means that the script was indeed started and that checks inside `func_27()` from `mission_triggerer_b` were satisfied, strange.
 
 Common sense tells us that there are usually only two ways to start that mission: either find a random towtruck in traffic or simply drive to mission location on the map.
-Let's check mission id for towtruck mission in `standard_global_init`, that would be 34.  Now let's head back to callbacks from `func_165()` and check those for this mission. 
+Let's check mission id for towtruck mission in `standard_global_init`, that would be `34`.  Now let's head back to callbacks from `func_165()` and check those for this mission. 
 
-Here, we'll find callback f_10 which looks like this:
+Here, we'll find callback `f_10` which looks like this:
 
 ```
 int func_851()//Position - 0x7E4AA
@@ -461,12 +461,16 @@ bool func_125(var uParam0, var uParam1)//Position - 0x6441
 And `func_125` in turn is called from `func_27()` like this:
 
 ```
-	if (func_125(uParam0, uParam1))
-	{
-		return true;
-	}
+if (func_125(uParam0, uParam1))
+{
+	return true;
+}
 ```
 
-You'll be surprised but once again the culprit behind this bug is `Global_88739` (`IS_CLEANUP_NEEDED`). As you can see from the code above, there is actually a third way to start the mission, a very weird one.
-The first time you'll try to start The Merryweather Heist the way shown in the video, `IS_CLEANUP_NEEDED` will be set to 1 thus saving current game time to `uParam1->f_111` since it is not initialized yet (== -1). 
-The second time you'll start the mission, `IS_CLEANUP_NEEDED` will be set to 1 once again while `uParam1->f_111` will already have the game time we saved last time, so all that's left is to check if 12 seconds have passed.
+You'll be surprised but once again the culprit behind this bug is `Global_88739` (`IS_CLEANUP_NEEDED`). 
+
+As you can see from the code above, there is actually a third way to start the mission, a very weird one: 12 seconds has to pass between 2 mission start attempts. (It was probably meant to be "12 seconds has to pass while `IS_CLEANUP_NEEDED == 1`"
+but since `uParam1->f_111` is not set to `-1` when `IS_CLEANUP_NEEDED != 1`, we get the bug)
+
+The first time you'll try to start The Merryweather Heist the way shown in the video, `IS_CLEANUP_NEEDED` will be set to `1` thus saving current game time to `uParam1->f_111` since it is not initialized yet (`== -1`).
+The second time you'll start the mission, `IS_CLEANUP_NEEDED` will be set to `1` once again while `uParam1->f_111` will already have the game time we saved last time, so all that's left is to check if 12 seconds have passed.
