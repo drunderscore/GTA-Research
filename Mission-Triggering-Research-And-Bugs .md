@@ -296,7 +296,7 @@ Now we need to start the script and... as of now I've yet to find where mission 
 The game doesn't want you to die during mission triggerring, for this reason some of the callbacks from `func_165()` will call a function that will make you invulnerable.
 Usually this function is called through intermediate function that also sets invulnerabilities to mission vehicles\peds\etc and sets `Global_88739` to `1`.
 
-Let' look at the code:
+Let's look at the code:
 
 ```
 void func_210()//Position - 0xBD9C
@@ -337,7 +337,7 @@ void func_211(int iParam0)//Position - 0xBF9A
 }
 ```
 
-Now let's look how the game strips those invulnerabilities:
+Now let's look how the game removes those invulnerabilities:
 
 ```
 if (Global_88739)
@@ -361,7 +361,7 @@ if (func_743(&Local_1252) && interior::is_valid_interior(interior::get_interior_
 }
 ```
 
-Here's our answer, for some reason "The third way" calls `func_211()` directly, skipping `func_210` and as a result doesn't set `IS_CLEANUP_NEEDED` to `1` preventing the script from properly removing player's proofs.
+Here's our answer, for some reason "The Third Way" calls `func_211()` directly, skipping `func_210` and as a result doesn't set `IS_CLEANUP_NEEDED` to `1` preventing the script from properly removing player's proofs.
 In fact, that's the only mission that does this, curious.
 
 ## Bug 2 "Wrong Mission Start\Fail"
@@ -469,7 +469,7 @@ if (func_125(uParam0, uParam1))
 
 You'll be surprised but once again the culprit behind this bug is `Global_88739` (`IS_CLEANUP_NEEDED`). 
 
-As you can see from the code above, there is actually a third way to start the mission, a very weird one: 12 seconds has to pass between 2 mission start attempts. (It was probably meant to be "12 seconds has to pass while `IS_CLEANUP_NEEDED == 1`"
+As you can see from the code above, there is actually a third way to start the mission, a very weird one: 12 seconds must pass between 2 mission start attempts. (It was probably meant to be "12 seconds must pass while `IS_CLEANUP_NEEDED == 1`"
 but since `uParam1->f_111` is not set to `-1` when `IS_CLEANUP_NEEDED != 1`, we get the bug)
 
 The first time you'll try to start The Merryweather Heist the way shown in the video, `IS_CLEANUP_NEEDED` will be set to `1` thus saving current game time to `uParam1->f_111` since it is not initialized yet (`== -1`).
