@@ -49,7 +49,7 @@ Let's call this piece of code `SCRIPT_1`.
 
 Fade_Out buffering means that we can buffer the code under `if(IS_SCREEN_FADED_OUT())` to execute later.
 
-[Example Video]()
+[Example Video](https://youtu.be/NexXs8VTJTY)
 
 ### How does it work?
 
@@ -63,7 +63,11 @@ Voila, we succesfully buffered the fade out.
 With `SCRIPT_1` stuck in a loop, let us start `SCRIPT_2` which is completely identical to `SCRIPT_1`.
 Now `SCRIPT_2` will call `DO_SCREEN_FADE_OUT(800);` and after 800 ms `SCRIPT_1` will consume `if(IS_SCREEN_FADED_OUT())` and fade in the screen. Since the screen is faded in now, `SCRIPT_2` is now stuck in `while(true)` waiting for the next successful fade out.
 
-With that, we successfully chained fade out buffering to the `SCRIPT_2`. That's exactly what happens in the [Example Video]().
+With that, we successfully chained fade out buffering to the `SCRIPT_2`. 
+
+That's exactly what happens in the [Example Video](https://youtu.be/NexXs8VTJTY).
+
+`vehicle_gen_controller` initiates the fade out, few frames later mission failed screen fades the screen back in and finally we buffer `ob_huffing_gas` which we execute later by entering the garage and fading out again (we end up with buffered `vehicle_gen_controller` once again).
 
 ## The normal way scripts handle fade outs
 
