@@ -293,7 +293,7 @@ Now we need to start the script and... as of now I've yet to find where mission 
 
 [Video](https://youtu.be/BrZOtY-xAI0)
 
-The game doesn't want you to die during mission triggerring, for this reason some of the callbacks from `func_165()` will call a function that will make you invulnerable.
+The game doesn't want you to die during mission triggering, for this reason some of the callbacks from `func_165()` will call a function that will make you invulnerable.
 Usually this function is called through intermediate function that also sets invulnerabilities to mission vehicles\peds\etc and sets `Global_88739` to `1`.
 
 Let's look at the code:
