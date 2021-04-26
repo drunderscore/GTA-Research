@@ -474,3 +474,7 @@ but since `uParam1->f_111` is not set to `-1` when `IS_CLEANUP_NEEDED != 1`, we 
 
 The first time you'll try to start The Merryweather Heist the way shown in the video, `IS_CLEANUP_NEEDED` will be set to `1` thus saving current game time to `uParam1->f_111` since it is not initialized yet (`== -1`).
 The second time you'll start the mission, `IS_CLEANUP_NEEDED` will be set to `1` once again while `uParam1->f_111` will already have the game time we saved last time, so all that's left is to check if 12 seconds have passed.
+
+## Unanswered questions
+
+Where do mission scripts actually start?

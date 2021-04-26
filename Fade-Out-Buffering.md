@@ -65,7 +65,7 @@ Now `SCRIPT_2` will call `DO_SCREEN_FADE_OUT(800);` and after 800 ms `SCRIPT_1` 
 
 With that, we successfully chained fade out buffering to the `SCRIPT_2`. 
 
-That's exactly what happens in the [Example Video](https://youtu.be/NexXs8VTJTY).
+That's exactly what happens in the [example video](https://youtu.be/NexXs8VTJTY).
 
 `vehicle_gen_controller` initiates the fade out, few frames later mission failed screen fades the screen back in and finally we buffer `ob_huffing_gas` which we execute later by entering the garage and fading out again (we end up with buffered `vehicle_gen_controller` once again).
 
@@ -87,3 +87,25 @@ while (!cam::is_screen_faded_out())
 ```
 
 The script will always fade out until the screen is faded out preventing fade out buffering from occuring. 
+
+## Unanswered questions
+
+How do we determine which script will consume `IS_SCREEN_FADED_OUT()` first? It seems that the example video is reproducable every time. However, if we try to chain property buying cutscene (trevor airfield, taxi service, towtruck) from `main` script, we will fail 
+because `main` will be the first to consume `IS_SCREEN_FADED_OUT()`.
+
+Related code from `main`:
+
+```
+if (func_1233() && gameplay::get_game_timer() >= Global_100364.f_43 + 1000) //check if we skipped the cutscene + some timer check
+{
+	cam::do_screen_fade_out(800);
+	while (!cam::is_screen_faded_out())
+	{
+		system::wait(0);
+	}
+	func_1200(iParam0); //fade in
+}
+```
+
+The only guess I have is that it depends on the execution speed of a particular script. Since `main` will be constantly checking !cam::is_screen_faded_out() in a loop, it will execute fade in faster then for example `vehicle_gen_controller`.
+But that's only a guess, I'm not sure about this.
