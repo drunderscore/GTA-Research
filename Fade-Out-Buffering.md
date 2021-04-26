@@ -107,5 +107,5 @@ if (func_1233() && gameplay::get_game_timer() >= Global_100364.f_43 + 1000) //ch
 }
 ```
 
-The only guess I have is that it depends on the execution speed of a particular script. Since `main` will be constantly checking !cam::is_screen_faded_out() in a loop, it will execute fade in faster then for example `vehicle_gen_controller`.
+The only guess I have is that it depends on the execution speed of a particular script. Since `main` will be constantly checking `!cam::is_screen_faded_out()` in a loop, it will execute fade in faster then for example `vehicle_gen_controller`.
 But that's only a guess, I'm not sure about this.
