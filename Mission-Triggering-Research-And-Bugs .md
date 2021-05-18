@@ -2,7 +2,7 @@
 
 # Mission Triggering in GTA V
 
-Some reasearch on mission triggering + explanation for 2 bugs related to it.
+Some research on mission triggering + explanation for 2 bugs related to it.
 
 ## Scripts Responsible for Mission Triggering
 
