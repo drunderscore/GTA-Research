@@ -2,7 +2,7 @@
 
 # Mission Failing and Retrying in GTA V
 
-Some research on mission failing\retrying (MF from now on).
+Some research on mission failing (MF from now on), retrying and checkpoints (cp).
 
 ## Scripts Responsible for MF
 
@@ -102,12 +102,184 @@ int func_26(int iParam0)//Position - 0xB7C
 }
 ```
 
-As I said, everything is pretty straightforward, we check if `Global_35777` or `GAME_STATE` is one of mission states that require MF screen + check if `replay_controller` is not running already. If those conditions are satisfied, we launch `replay_controller`.
+As I said, everything is pretty straightforward, we check if `Global_35777` or `GAME_STATE` is one of the mission states that require MF screen + check if `replay_controller` is not running already. If those conditions are satisfied, we launch `replay_controller`.
+
+## Checkpoints 
+
+Now that `replay_controller` is running, we need to fail the mission to trigger it. But before we look at how it triggers, let's first look at how cps work since we would want to save current checkpoint when we MF.
+
+Once again, nothing extraordinary, we just look for native `playstats_mission_checkpoint` in our mission script. Most likely we'll find this piece of code (`rural_bank_setup` or Paleto Score Setup will be used here):
+
+```
+void func_736(int iParam0, char* sParam1, int iParam2, int iParam3, int iParam4, int iParam5)//Position - 0x7E55D
+{
+	iParam0 - new cp,
+	sParam1 - cp description,
+	iParam2 - final checkpoint,
+	iParam3 - ignore if new cp < current cp,
+	iParam4 - character, 0 - current character, other values - specific character,
+	iParam5 - smth regarding current vehicle, usually 1
+	
+	int iVar0;
+	int iVar1;
+	int iVar2;
+	char[] cVar3[8];
+	int iVar5;
+	var uVar6;
+	int iVar10;
+	
+	...
+	iVar0 = 0;	//should change current cp
+	if (iParam3 == 1) //if (ignore if new cp < current cp)
+	{
+		if (iParam0 != Global_91523)
+		{
+			iVar0 = 1;
+		}
+	}
+	else if (iParam0 > Global_91523) // if(new cp > cur cp)
+	{
+		iVar0 = 1;
+	}
+	if (iVar0 == 1) //if (should change current cp)
+	{
+		func_51(1);
+		...
+		iVar1 = func_768(script::get_this_script_name(), 1);
+		if (iVar1 != -1 && iVar1 != 94) //if (main mission && not mission 94 (mission 94 doesn't exist, useless check))
+		{
+			Global_101652.f_8028.f_330[iVar1 /*6*/].f_1 = 0;
+			iVar2 = func_766(iVar1);
+			cVar3 = { Global_82607[iVar1 /*34*/].f_8 };
+			if (iVar1 == 90) //jewelry_heist
+			{
+				switch (Global_101652.f_8028.f_99.f_205[7])
+				{
+					case 1:
+						StringConCat(&cVar3, "A", 8);
+						break;
+					
+					case 2:
+						StringConCat(&cVar3, "B", 8);
+						break;
+					}
+			}
+			stats::playstats_mission_checkpoint(&cVar3, iVar2, Global_91523, iParam0); //checkpoint
+		}
+		else
+		{
+			iVar5 = func_761(script::get_this_script_name(), 1);
+			if (iVar5 != -1) //S&F
+			{
+				Global_101652.f_17517[iVar5 /*6*/].f_4 = 0;
+				MemCopy(&uVar6, {func_760(iVar5)}, 4);
+				stats::playstats_mission_checkpoint(&uVar6, 0, Global_91523, iParam0);  //checkpoint
+			}
+			else
+			{
+				iVar10 = func_759(&(Global_91486.f_3)); //BailBond 1-4
+				if (iVar10 > -1)
+				{
+					Global_101652.f_23929.f_4[iVar10] = 0;
+				}
+			}
+		}
+		Global_85997 = iParam2; //saving isFinalCheckpoint
+		Global_91523 = iParam0; //saving current cp
+		func_737(iParam0, sParam1, iParam4, iParam5);
+		...
+	}
+	...
+}
+```
+
+Usually this function would be called like this:
+
+```
+func_736(1, "stage_drive_to_bank", 0, 0, 0, 1);
+```
+
+Now we know that `Global_91523` is `CURRENT_CHECKPOINT` and `Global_85997` is `IS_FINAL_CHECKPOINT` (the later one isn't really interesting and is used to determine whether the game should diplay "Skip Mission" or "Skip Section" on MF screens).
+
+With that part out of the way, let's look how MF screen is triggered.
 
 ## Mission Failing
 
-Now that `replay_controller` is running, all we need to do is fail the mission.
+First, let's look at `replay_controller` main loop, relevant part looks like this:
 
+```
+switch (Global_91486)
+{
+	case 12:
+		Global_91486 = 13;
+		break;
+	
+	case 0:
+		func_734();
+		break;
+	
+	case 1:
+		func_733();
+		break;
+	
+	case 2:
+		func_732();
+		break;
+
+	...//other cases
+	}
+}
+```
+
+`replay_controller` checks `Global_91486` or `MISSION_FAILED_STATE` to determine what it should do. We can quickly check, that after failing the mission this Global is equal to 0.
+
+So, let's check what sets `MISSION_FAILED_STATE` to 0. Here main missions and S&F go separate ways. Logic is mostly the same but for S&F missions MF is triggered from the script itself while for main missions it's triggered from `flow_controller`.
+
+For main missions algorithm's like this:
+
+```
+1) Mission Fail
+2) Change some state varialbles
+3) Cleanup and Terminate the script
+4) flow_controller restarts the script
+```
+
+Let's look at flow_controller. The logic here happens in one of functions that were discusses in mission triggering research: `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` or `Flow_Do_Mission_At_Switch`.
+
+At the end of each of those functions we can find a call to `func_` 
+
+Let's look at what state 13 does:
+
+```
+case 13:
+	if (!(((((func_1(0) || func_1(3)) || func_1(2)) || func_1(4)) || func_1(9)) || func_1(10)))
+	{
+		func_737();
+	}
+```
+
+And `func_1` should be familiar to us:
+
+```
+int func_1(int iParam0)//Position - 0x1FB
+{
+	return Global_35777 == iParam0;
+}
+```
+
+We saw this function already in `main.c`. It checks if current `GAME_STATE` is equal to `iParam0`.
+In this case, we use it to do exactly the opposite from `main.c`, we check if `GAME_STATE` is not equal to any of the mission states that require `replay_controller` and call `func_737` if it's the case:
+
+```
+void func_737()//Position - 0x76A70
+{
+	func_738();
+	Global_91486 = 12;
+	script::terminate_this_thread();
+}
+```
+
+Alright, now we know 
 
 MF states:
 
