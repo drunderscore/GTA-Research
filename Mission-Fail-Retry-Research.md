@@ -2,7 +2,7 @@
 
 # Mission Failing and Retrying in GTA V
 
-Some research on mission failing (MF from now on), retrying and checkpoints (cp).
+Some research on mission failing (MF from now on), retrying and checkpoints (cp) to understand general workflow of the game.
 
 ## Scripts Responsible for MF
 
@@ -105,7 +105,7 @@ As I said, everything is pretty straightforward, we check if `Global_35777` or `
 
 ## Checkpoints 
 
-Now that `replay_controller` is running, we need to fail the mission to trigger it. But before we look at how it triggers, let's first look at how cps work since we would want to save current checkpoint when we MF.
+Now that `replay_controller` is running, we need to fail the mission to trigger it. But before we look at how it triggers, let's first look at how cps work since we would want to save current cp when we MF.
 
 Once again, nothing extraordinary, we just look for native `playstats_mission_checkpoint` in our mission script. Most likely we'll find this piece of code (`rural_bank_setup` or Paleto Score Setup will be used here):
 
@@ -232,7 +232,62 @@ switch (Global_91486)
 
 `replay_controller` checks `Global_91486` or `MISSION_FAILED_STATE` to determine what it should do.
 
-MF states:
+We can quickly check, that after failing the mission this Global is equal to 0.
+
+### Script Workflows
+So, let's check what sets `MISSION_FAILED_STATE` to 0. Here main missions and S&F go separate ways. Logic is mostly the same but for S&F missions MF is triggered from the script itself while for main missions it's triggered from `flow_controller`.
+
+For main missions algorithm's like this:
+
+```
+1) Mission Fail
+2) Change some state varialbles
+3) Cleanup and Terminate the script
+4) flow_controller restarts the script
+```
+
+And for S&F missions algorithm's like this:
+
+```
+1) Mission Fail
+2) Change some state varialbles
+3) Wait for MISSION_FAILED_STATE to become 7 or 8
+4) Terminate
+5) replay_controller restarts the script
+```
+
+Other than different work flows both save the same information.
+
+Let's look at `flow_controller`. The logic here happens in one of the functions that were discusses in mission triggering research: `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` or `Flow_Do_Mission_At_Switch`.
+
+At the end of each of those functions we can find a call to `func_238` which calls other relevant functions like saving stats. Among those calls we can find `func_241` that in turn calls `func_242` which among other things does this:
+
+```
+...
+Global_91486 = 0;
+StringCopy(&(Global_91486.f_3), sParam0, 32);
+Global_91486.f_11 = iParam1;
+Global_91486.f_2 = Global_91523;
+...
+```
+
+Here, we:
+1) Set `MISSION_FAILED_STATE` to 0 triggering `replay_controller`
+2) Save current mission script name to `Global_91486.f_3` or `MISSION_FAILED_SCRIPT_NAME`
+3) Save mission fail type to `Global_91486.f_11` or `MISSION_FAIL_TYPE`
+	Mission Fail types are:
+	```
+	0-2 - Most Main Missions, depends on bitfield f_15 in MISSIONS_ARRAY 
+	3 - carsteal4, fbi3
+	4 - me_amanda1, me_jimmy1, me_tracey1
+	5 - Trafficking and Towing missions
+	6 - S&F
+	```
+4) Save `CURRENT_CHECKPOINT` to `Global_91486.f_2` or `MISSION_FAILED_CHECKPOINT`
+
+### replay_controller
+
+Now with `replay_controller` triggered let's look at MF states:
 
 ```
 0 - MF before MF screen appears
@@ -251,56 +306,120 @@ MF states:
 13 - Default state after starting replay_controller + state to terminate replay_controller after exiting the mission.
 ```
 
-We can quickly check, that after failing the mission this Global is equal to 0.
-
-So, let's check what sets `MISSION_FAILED_STATE` to 0. Here main missions and S&F go separate ways. Logic is mostly the same but for S&F missions MF is triggered from the script itself while for main missions it's triggered from `flow_controller`.
-
-For main missions algorithm's like this:
+Since we are interested in retrying the mission, we will look at state 9 which is represented by `func_19`:
 
 ```
-1) Mission Fail
-2) Change some state varialbles
-3) Cleanup and Terminate the script
-4) flow_controller restarts the script
-```
-
-Let's look at flow_controller. The logic here happens in one of functions that were discusses in mission triggering research: `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` or `Flow_Do_Mission_At_Switch`.
-
-At the end of each of those functions we can find a call to `func_238` which in turn will call other relevant functions like saving stats. Among those calls we can find `func_241` 
-
-
-
-
-
-Let's look at what state 13 does:
-
-```
-case 13:
-	if (!(((((func_1(0) || func_1(3)) || func_1(2)) || func_1(4)) || func_1(9)) || func_1(10)))
+void func_19()//Position - 0x27CF
+{
+	...
+	if (func_18()) //if (MAIN_MISSION)
 	{
-		func_737();
+		func_230(); //sets some bit for main missions and performs some stuff for few special missions
 	}
-```
-
-And `func_1` should be familiar to us:
-
-```
-int func_1(int iParam0)//Position - 0x1FB
-{
-	return Global_35777 == iParam0;
+	else
+	{
+		switch (Global_91486.f_11) //MISSION_FAIL_TYPE
+		{
+			case 5:
+				func_229(); //stuff for towing and trafficking
+				break;
+			
+			case 6:
+				func_63(); //relaunch scripts for S&F
+				break;
+			
+			default:
+				break;
+			}
+	}
+	if (func_257() == 0) //should always be true for S&F and most main missions (see state 11 for list of exceptions)
+	{
+		if (func_62() != 0) //if checkpoint != 0
+		{
+			func_61();
+		}
+		func_60();
+		func_59();
+	}
+	func_20();
+	system::wait(0);
+	if (func_257() == 0) //should always be true for S&F and most main missions (see state 11 for list of exceptions)
+	{
+		Global_91486 = 10;
+	}
+	else
+	{
+		system::wait(500);
+		cam::do_screen_fade_in(800);
+	}
 }
 ```
 
-We saw this function already in `main.c`. It checks if current `GAME_STATE` is equal to `iParam0`.
-In this case, we use it to do exactly the opposite from `main.c`, we check if `GAME_STATE` is not equal to any of the mission states that require `replay_controller` and call `func_737` if it's the case:
+That's it, we check `MISSION_FAIL_TYPE` to determine if we should restart S&F script using `MISSION_FAILED_SCRIPT_NAME` or change bitfield for Main Missions and proceed to state 10. `replay_controller` will stay in this state unless you MF again.
+
+## Restoring checkpoints 
+
+Finally, we need to restore the state of the mission depending on the checkpoint we saved. Both S&F and Main Missions do this the same way. Let's search for `Global_91486.f_2` or `MISSION_FAILED_CHECKPOINT` in `rural_bank_setup`.
+We quickly come up with this function:
 
 ```
-void func_737()//Position - 0x76A70
+int func_779()//Position - 0x83431
 {
-	func_738();
-	Global_91486 = 12;
-	script::terminate_this_thread();
+	if (!Global_91486 == 10 && !Global_91486 == 9) //MF state
+	{
+		return 0;
+	}
+	return Global_91486.f_2; // MF checkpoint
 }
 ```
 
-Alright, now we know 
+Basically we check if we came from MF screen and if we did - return `MISSION_FAILED_CHECKPOINT`.
+
+Now let's see how it's used.
+
+```
+iVar0 = func_779(); //checkpoint 
+if (Global_85996 == 1)
+{
+	iVar0++;
+}
+if (iVar0 > 3) //if checkpoint > 3 start final cutscene
+{
+	if (func_178() != 0)
+	{
+		while (!func_414(0, 1))
+		{
+			system::wait(0);
+		}
+	}
+	func_784(38, 1);
+	func_784(37, 0);
+	func_778(1393.542f, 3580.138f, 33.9722f, 353.4546f, 1, 0);
+	func_722(0, -1, 1);
+	func_187();
+}
+else
+{
+	switch (iVar0) //change mission state depending on checkpoint
+	{
+		case 0:
+			vLocal_196 = { vLocal_127 };
+			fLocal_199 = fLocal_130;
+			gameplay::clear_area(vLocal_108, 500f, 1, 0, 0, false);
+			func_28(1);
+			break;
+		
+		case 1:
+			...
+		
+		case 2:
+			...
+		
+		case 3:
+			...
+	}
+	iLocal_234 = true;
+}
+```
+
+That's it, the mission restored it's state according to the cp that was saved on MF and with that we now know the general Mission Fail and Retry flow.
