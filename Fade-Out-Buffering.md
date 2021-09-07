@@ -54,7 +54,7 @@ Fade_Out buffering means that we can buffer the code under `if(IS_SCREEN_FADED_O
 
 ### How does it work?
 
-The thing is, our example code is actually bad. I mean, it's alright if we are the only script running but that's not the case for GTA V where a lot of scripts run in [quasi-parallel](##how-to-determine-which-script-will-consume-fade-out) mode during gameplay.
+The thing is, our example code is actually bad. I mean, it's alright if we are the only script running but that's not the case for GTA V where a lot of scripts run in [quasi-parallel](#how-to-determine-which-script-will-consume-fade-out) mode during gameplay.
 We can easily end up in a situtation like this: 
 
 Let's say we start our `SCRIPT_1`, it executes `DO_SCREEN_FADE_OUT(800)` and the screen starts to fade out. Now let's say some `SCRIPT_2` calls `DO_SCREEN_FADE_IN(0)` 400 ms after our fade out.
