@@ -9,11 +9,10 @@ Some research on mission failing (MF from now on), retrying and checkpoints (cp)
 ```
 main: Launches replay_controller.
 replay_controller: Displays MF screen, changes the MF state depending on player's input, restarts S&F missions.
-flow_controller: Restarts main missions, saves checkpoint on MF for main missions, triggers replay_controller for main missions. 
+flow_controller: Restarts, saves checkpoint on MF and triggers replay_controller for main missions. 
 Both S&F and main mission scripts: Change checkpoint, change mission state depending on the checkpoint on restart.
 S&F scripts: Save current script name for restarting, save checkpoint on MF, triggers replay_controller.
 ```
-
 
 ## replay_controller launch
 
@@ -199,7 +198,7 @@ Usually this function would be called like this:
 func_736(1, "stage_drive_to_bank", 0, 0, 0, 1);
 ```
 
-Now we know that `Global_91523` is `CURRENT_CHECKPOINT` and `Global_85997` is `IS_FINAL_CHECKPOINT` (the later one isn't really interesting and is used to determine whether the game should diplay "Skip Mission" or "Skip Section" on MF screens).
+Now we know that `Global_91523` is `CURRENT_CHECKPOINT` and `Global_85997` is `IS_FINAL_CHECKPOINT` (the latter one isn't really interesting and is used to determine whether the game should diplay "Skip Mission" or "Skip Section" on MF screens).
 
 With that part out of the way, let's look how MF screen is triggered.
 
@@ -231,7 +230,28 @@ switch (Global_91486)
 }
 ```
 
-`replay_controller` checks `Global_91486` or `MISSION_FAILED_STATE` to determine what it should do. We can quickly check, that after failing the mission this Global is equal to 0.
+`replay_controller` checks `Global_91486` or `MISSION_FAILED_STATE` to determine what it should do.
+
+MF states:
+
+```
+0 - MF before MF screen appears
+1 - MF screen appeared, main state
+2 - Pressed No on Mission Restart screen
+3 - Pressed Restart when CP > 0 (cut feature to restart the mission independent of CP?)
+4 - Pressed Exit Mission, Confirm Exit state
+5 - Pressed Skip, Confirm Skip state
+6 - Some state for main missions with type == 2 (examples are : drf1, drf2, drf5). Gets set when No is pressed on Skip Checkpoint\Mission or Confirm Exit screens. Not sure what it's for and the code looks weird, is it failsafe\unused code of some kind?
+7 - Pressed Retry\Restart\Yes on Confirm Skip\
+8 - Pressed Yes on Confirm Exit screen
+9 - State finished setup for restarting mission after Retry\Restart\Skip
+10 - Finished Retry\Restart\Skip
+11 - State after Retry\Restart\Skip for special missions: jewelry_prep2A, jewelry_prep1B, fbi4_prep1, agency_prep1, rural_bank_prep1 + State for when benchmark is running
+12 - State after replay_controller termination 
+13 - Default state after starting replay_controller + state to terminate replay_controller after exiting the mission.
+```
+
+We can quickly check, that after failing the mission this Global is equal to 0.
 
 So, let's check what sets `MISSION_FAILED_STATE` to 0. Here main missions and S&F go separate ways. Logic is mostly the same but for S&F missions MF is triggered from the script itself while for main missions it's triggered from `flow_controller`.
 
@@ -246,7 +266,11 @@ For main missions algorithm's like this:
 
 Let's look at flow_controller. The logic here happens in one of functions that were discusses in mission triggering research: `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` or `Flow_Do_Mission_At_Switch`.
 
-At the end of each of those functions we can find a call to `func_` 
+At the end of each of those functions we can find a call to `func_238` which in turn will call other relevant functions like saving stats. Among those calls we can find `func_241` 
+
+
+
+
 
 Let's look at what state 13 does:
 
@@ -280,22 +304,3 @@ void func_737()//Position - 0x76A70
 ```
 
 Alright, now we know 
-
-MF states:
-
-```
-0 - MF before MF screen appears
-1 - MF screen appeared, main state
-2 - Pressed No on Mission Restart screen
-3 - Pressed Restart when CP > 0 (cut feature to restart the mission independent of CP?)
-4 - Pressed Exit Mission, Confirm Exit state
-5 - Pressed Skip, Confirm Skip state
-6 - Some state for main missions with type == 2 (examples are : drf1, drf2, drf5). Gets set when No is pressed on Skip Checkpoint\Mission or Confirm Exit screens. Not sure what it's for and the code looks weird, is it failsafe\unused code of some kind?
-7 - Pressed Retry\Restart\Yes on Confirm Skip\
-8 - Pressed Yes on Confirm Exit screen
-9 - State finished setup for restarting mission after Retry\Restart\Skip
-10 - Finished Retry\Restart\Skip
-11 - State after Retry\Restart\Skip for special missions: jewelry_prep2A, jewelry_prep1B, fbi4_prep1, agency_prep1, rural_bank_prep1 + State for when benchmark is running
-12 - State after replay_controller termination 
-13 - Default state after starting replay_controller + state to terminate replay_controller after exiting the mission.
-```
