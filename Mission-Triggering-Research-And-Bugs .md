@@ -287,7 +287,7 @@ if (Global_69700)
 }
 ```
 
-Now we need to start the script and flow_controller does that in one of three functions `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` and `Flow_Do_Mission_At_Switch` (thanks to Parik for this info).
+Finally we need to start the script and flow_controller does that in one of three functions `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` or `Flow_Do_Mission_At_Switch` (thanks to Parik for this info).
 
 Those functions are pretty big but the main part for us is: 
 
@@ -299,6 +299,8 @@ Those functions are pretty big but the main part for us is:
 	Global_69941 = -1;
 	return -1;
 ```
+
+That's it for mission triggering logic, now let's look at some bugs.
 
 ## Bug 1 "Invincibility + No Wanted level"
 
