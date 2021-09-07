@@ -2,7 +2,7 @@
 
 # Mission Triggering in GTA V
 
-Some research on mission triggering + explanation for 2 bugs related to it.
+Some research on main missions triggering + explanation for 2 bugs related to it.
 
 ## Scripts Responsible for Mission Triggering
 
@@ -287,7 +287,18 @@ if (Global_69700)
 }
 ```
 
-Now we need to start the script and... as of now I've yet to find where mission scripts are actually started after being requested.
+Now we need to start the script and flow_controller does that in one of three functions `Flow_Do_Mission_Now`, `Flow_Do_Mission_At_Blip` and `Flow_Do_Mission_At_Switch` (thanks to Parik for this info).
+
+Those functions are pretty big but the main part for us is: 
+
+```
+	Global_82571[iVar0 /*5*/].f_4 = system::_start_new_streamed_script(iVar2, 20500); //Global_82571 - available (or running?) missions, this one is for starting after cutscenes
+	script::_set_streamed_script_as_no_longer_needed(iVar2);
+	gameplay::set_bit(&(Global_82571[iVar0 /*5*/].f_1), 2);
+	func_369(iParam1, iVar0, iVar1, iParam0, 1);
+	Global_69941 = -1;
+	return -1;
+```
 
 ## Bug 1 "Invincibility + No Wanted level"
 
@@ -474,7 +485,3 @@ but since `uParam1->f_111` is not set to `-1` when `IS_CLEANUP_NEEDED != 1`, we 
 
 The first time you'll try to start The Merryweather Heist the way shown in the video, `IS_CLEANUP_NEEDED` will be set to `1` thus saving current game time to `uParam1->f_111` since it is not initialized yet (`== -1`).
 The second time you'll start the mission, `IS_CLEANUP_NEEDED` will be set to `1` once again while `uParam1->f_111` will already have the game time we saved last time, so all that's left is to check if 12 seconds have passed.
-
-## Unanswered questions
-
-Where do mission scripts actually start?

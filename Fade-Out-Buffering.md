@@ -37,6 +37,7 @@ func_2()
 			DO_SCREEN_FADE_IN(0); //fade in the screen
 			break; //break the loop
 		}
+		system::wait(0);
 	}
 }
 ```
@@ -53,10 +54,10 @@ Fade_Out buffering means that we can buffer the code under `if(IS_SCREEN_FADED_O
 
 ### How does it work?
 
-The thing is, our example code is actually bad. I mean, it's alright if we are the only script running but that's not the case for GTA V where a lot of scripts run in parallel during gameplay.
+The thing is, our example code is actually bad. I mean, it's alright if we are the only script running but that's not the case for GTA V where a lot of scripts run in [quasi-parallel](## how-to-determine-which-script-will-consume-fade-out) mode during gameplay.
 We can easily end up in a situtation like this: 
 
-Let's say we start our `SCRIPT_1`, it executes `DO_SCREEN_FADE_OUT(800);` and the screen starts to fade out. Now let's say some `SCRIPT_2` calls `DO_SCREEN_FADE_IN(0)` 400 ms after our fade out.
+Let's say we start our `SCRIPT_1`, it executes `DO_SCREEN_FADE_OUT(800)` and the screen starts to fade out. Now let's say some `SCRIPT_2` calls `DO_SCREEN_FADE_IN(0)` 400 ms after our fade out.
 What will happen to our `while(true)` loop? `if(IS_SCREEN_FADED_OUT())` will not succeed because the screen never actually faded out thus leaving us waiting for the next successful fade out.
 Voila, we succesfully buffered the fade out.
 
@@ -88,24 +89,8 @@ while (!cam::is_screen_faded_out())
 
 The script will always fade out until the screen is faded out preventing fade out buffering from occuring. 
 
-## Unanswered questions
+## How to determine which script will consume fade out
 
-How do we determine which script will consume `IS_SCREEN_FADED_OUT()` first? It seems that the example video is reproducable every time. However, if we try to chain property buying cutscene (Trevor's airfield, taxi service, towtruck) from `main` script, we will fail 
-because `main` will be the first to consume `IS_SCREEN_FADED_OUT()`.
-
-Related code from `main`:
-
-```
-if (func_1233() && gameplay::get_game_timer() >= Global_100364.f_43 + 1000) //check if we skipped the cutscene + some timer check
-{
-	cam::do_screen_fade_out(800);
-	while (!cam::is_screen_faded_out())
-	{
-		system::wait(0);
-	}
-	func_1200(iParam0); //fade in
-}
-```
-
-The only guess I have is that it depends on the execution speed of a particular script. Since `main` will be constantly checking `!cam::is_screen_faded_out()` in a loop, it will execute fade in faster than for example `vehicle_gen_controller`.
-But that's only a guess, I'm not sure about this.
+Scripts in GTA V aren't completely parallel, one script will continue executing until it reaches a `WAIT` native, then the game switches over to the next script. The order of script execution depends on the scripts array (from first to last).
+What that means is: scripts that are started earlier (and thus added to the scripts array first) have precedence, provided no script has ended execution. If another script did end it's execution, new script can take it's place in the scripts array allowing it to consume fade out despite 
+being launched later than some other script(s) that wants to consume it too. Thanks to Pariks for this info.
