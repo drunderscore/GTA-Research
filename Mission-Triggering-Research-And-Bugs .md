@@ -108,51 +108,51 @@ Inside any mission_triggerer's main loop (here `mission_triggerer_b` is used) yo
 
 ```
 if (Global_101652.f_8028) //CAN_START_MISSIONS (false for directors mode and benchmark)
+{
+	if (!Global_88749) //if(!SOME_MISSION_PASSED_THE_CHECKS)
 	{
-		if (!Global_88749) //if(!SOME_MISSION_PASSED_THE_CHECKS)
+		if (!entity::is_entity_dead(player::player_ped_id(), 0))
 		{
-			if (!entity::is_entity_dead(player::player_ped_id(), 0))
+			iVar0 = 0;
+			while (iVar0 < Global_88751)
 			{
-				iVar0 = 0;
-				while (iVar0 < Global_88751)
+				Global_88740 = Global_88752[iVar0 /*17*/].f_5;
+				if (Global_88752[iVar0 /*17*/] == 1 && !Global_88749) //if(MISSION_CAN_BE_STARTED && !SOME_MISSION_PASSED_THE_CHECKS)
 				{
-					Global_88740 = Global_88752[iVar0 /*17*/].f_5;
-					if (Global_88752[iVar0 /*17*/] == 1 && !Global_88749) //if(MISSION_CAN_BE_STARTED && !SOME_MISSION_PASSED_THE_CHECKS)
-					{
-						...
-						else
-						{
-							switch (Global_88752[iVar0 /*17*/].f_3)
-							{
-								case 0:
-									func_26(iVar0, uParam0); //checks for starting missions are here
-									break;
-								
-								case 1:
-									func_19(iVar0, uParam0); //probably missions that start from character switches
-									break;
-								
-								case 2:
-									break;
-								}
-							}
-					}
-					iVar0++;
-				}
-				if (Global_88743 != -1)
-				{
-					//some specific missions (mrsphilips2, martin1, family6, finale_endgame)
 					...
+					else
+					{
+						switch (Global_88752[iVar0 /*17*/].f_3)
+						{
+							case 0:
+								func_26(iVar0, uParam0); //checks for starting missions are here
+								break;
+							
+							case 1:
+								func_19(iVar0, uParam0); //probably missions that start from character switches
+								break;
+							
+							case 2:
+								break;
+							}
+						}
 				}
+				iVar0++;
+			}
+			if (Global_88743 != -1)
+			{
+				//some specific missions (mrsphilips2, martin1, family6, finale_endgame)
+				...
 			}
 		}
-		else if (Global_88749 == 1) // if(SOME_MISSION_PASSED_THE_CHECKS)
-		{
-			//sets some variables + switches Global_88749 back to 0
-			...
-		}
+	}
+	else if (Global_88749 == 1) // if(SOME_MISSION_PASSED_THE_CHECKS)
+	{
+		//sets some variables + switches Global_88749 back to 0
 		...
 	}
+	...
+}
 ```
 
 What happens here is: for every mission in `CURRENTLY_AVAILABLE_MISSIONS_ARRAY` with `MISSION_CAN_BE_STARTED == 1` mission_triggerer launches `func_26()` which looks like this:
@@ -292,12 +292,12 @@ Finally we need to start the script and flow_controller does that in one of thre
 Those functions are pretty big but the main part for us is: 
 
 ```
-	Global_82571[iVar0 /*5*/].f_4 = system::_start_new_streamed_script(iVar2, 20500); //Global_82571 - available (or running?) missions, this one is for starting after cutscenes
-	script::_set_streamed_script_as_no_longer_needed(iVar2);
-	gameplay::set_bit(&(Global_82571[iVar0 /*5*/].f_1), 2);
-	func_369(iParam1, iVar0, iVar1, iParam0, 1);
-	Global_69941 = -1;
-	return -1;
+Global_82571[iVar0 /*5*/].f_4 = system::_start_new_streamed_script(iVar2, 20500); //Global_82571 - available (or running?) missions, this one is for starting after cutscenes
+script::_set_streamed_script_as_no_longer_needed(iVar2);
+gameplay::set_bit(&(Global_82571[iVar0 /*5*/].f_1), 2);
+func_369(iParam1, iVar0, iVar1, iParam0, 1);
+Global_69941 = -1;
+return -1;
 ```
 
 That's it for mission triggering logic, now let's look at some bugs.
