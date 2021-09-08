@@ -93,4 +93,4 @@ The script will always fade out until the screen is faded out preventing fade ou
 
 Scripts in GTA V aren't completely parallel, one script will continue executing until it reaches a `WAIT` native, then the game switches over to the next script. The order of script execution depends on the scripts array (from first to last).
 What that means is: scripts that are started earlier (and thus added to the scripts array first) have precedence, provided no script has ended execution. If another script did end it's execution, new script can take it's place in the scripts array allowing it to consume fade out despite 
-being launched later than some other script(s) that wants to consume it too. Thanks to Pariks for this info.
+being launched later than some other script(s) that wants to consume it too. Thanks to Parik for this info.
