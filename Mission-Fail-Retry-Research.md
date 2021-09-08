@@ -2,7 +2,7 @@
 
 # Mission Failing and Retrying in GTA V
 
-Some research on mission failing (MF from now on), retrying and checkpoints (cp) to understand general workflow of the game.
+Some research on mission failing (MF from now on), retrying and checkpoints (CP) to understand general workflow of the game.
 
 ## Scripts Responsible for MF
 
@@ -105,17 +105,17 @@ As I said, everything is pretty straightforward, we check if `Global_35777` or `
 
 ## Checkpoints 
 
-Now that `replay_controller` is running, we need to fail the mission to trigger it. But before we look at how it triggers, let's first look at how cps work since we would want to save current cp when we MF.
+Now that `replay_controller` is running, we need to fail the mission to trigger it. But before we look at how it triggers, let's first look at how cps work since we would want to save current CP when we MF.
 
 Once again, nothing extraordinary, we just look for native `playstats_mission_checkpoint` in our mission script. Most likely we'll find this piece of code (`rural_bank_setup` or Paleto Score Setup will be used here):
 
 ```
 void func_736(int iParam0, char* sParam1, int iParam2, int iParam3, int iParam4, int iParam5)//Position - 0x7E55D
 {
-	iParam0 - new cp,
-	sParam1 - cp description,
+	iParam0 - new CP,
+	sParam1 - CP description,
 	iParam2 - final checkpoint,
-	iParam3 - ignore if new cp < current cp,
+	iParam3 - ignore if new CP < current CP,
 	iParam4 - character, 0 - current character, other values - specific character,
 	iParam5 - smth regarding current vehicle, usually 1
 	
@@ -128,19 +128,19 @@ void func_736(int iParam0, char* sParam1, int iParam2, int iParam3, int iParam4,
 	int iVar10;
 	
 	...
-	iVar0 = 0;	//should change current cp
-	if (iParam3 == 1) //if (ignore if new cp < current cp)
+	iVar0 = 0;	//should change current CP
+	if (iParam3 == 1) //if (ignore if new CP < current CP)
 	{
 		if (iParam0 != Global_91523)
 		{
 			iVar0 = 1;
 		}
 	}
-	else if (iParam0 > Global_91523) // if(new cp > cur cp)
+	else if (iParam0 > Global_91523) // if(new CP > cur CP)
 	{
 		iVar0 = 1;
 	}
-	if (iVar0 == 1) //if (should change current cp)
+	if (iVar0 == 1) //if (should change current CP)
 	{
 		func_51(1);
 		...
@@ -184,7 +184,7 @@ void func_736(int iParam0, char* sParam1, int iParam2, int iParam3, int iParam4,
 			}
 		}
 		Global_85997 = iParam2; //saving isFinalCheckpoint
-		Global_91523 = iParam0; //saving current cp
+		Global_91523 = iParam0; //saving current CP
 		func_737(iParam0, sParam1, iParam4, iParam5);
 		...
 	}
@@ -422,4 +422,4 @@ else
 }
 ```
 
-That's it, the mission restored it's state according to the cp that was saved on MF and with that we now know the general Mission Fail and Retry flow.
+That's it, the mission restored it's state according to the CP that was saved on MF and with that we now know the general Mission Fail and Retry flow.
