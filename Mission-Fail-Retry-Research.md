@@ -198,7 +198,7 @@ Usually this function would be called like this:
 func_736(1, "stage_drive_to_bank", 0, 0, 0, 1);
 ```
 
-Now we know that `Global_91523` is `CURRENT_CHECKPOINT` and `Global_85997` is `IS_FINAL_CHECKPOINT` (the latter one isn't really interesting and is used to determine whether the game should diplay "Skip Mission" or "Skip Section" on MF screens).
+Now we know that `Global_91523` is `CURRENT_CHECKPOINT` and `Global_85997` is `IS_FINAL_CHECKPOINT` (the latter one isn't really interesting and is used to determine whether the game should display "Skip Mission" or "Skip Section" on MF screens).
 
 With that part out of the way, let's look how MF screen is triggered.
 
