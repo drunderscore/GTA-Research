@@ -232,7 +232,7 @@ switch (Global_91486)
 
 `replay_controller` checks `Global_91486` or `MISSION_FAILED_STATE` to determine what it should do.
 
-We can quickly check, that after failing the mission this Global is equal to 0.
+We can quickly check that after failing the mission this Global is equal to 0.
 
 ### Script Workflows
 So, let's check what sets `MISSION_FAILED_STATE` to 0. Here main missions and S&F go separate ways. Logic is mostly the same but for S&F missions MF is triggered from the script itself while for main missions it's triggered from `flow_controller`.
@@ -252,7 +252,7 @@ And for S&F missions algorithm's like this:
 1) Mission Fail
 2) Change some state varialbles
 3) Wait for MISSION_FAILED_STATE to become 7 or 8
-4) Terminate
+4) Cleanup and Terminate the script
 5) replay_controller restarts the script
 ```
 
@@ -291,17 +291,17 @@ Now with `replay_controller` triggered let's look at MF states:
 
 ```
 0 - MF before MF screen appears
-1 - MF screen appeared, main state
-2 - Pressed No on Mission Restart screen
-3 - Pressed Restart when CP > 0 (cut feature to restart the mission independent of CP?)
+1 - MF screen appeared, Main State
+2 - MF screen appeared, CP > 0 with Tab to restart the mission, Special Main State (most likely only for Prologue, F&L, Jewelry Store Heist, Mr. Philips)
+3 - Pressed Restart on state 2, Confirm Restart state
 4 - Pressed Exit Mission, Confirm Exit state
 5 - Pressed Skip, Confirm Skip state
-6 - Some state for main missions with type == 2 (examples are : drf1, drf2, drf5). Gets set when No is pressed on Skip Checkpoint\Mission or Confirm Exit screens. Not sure what it's for and the code looks weird, is it failsafe\unused code of some kind?
+6 - Main State for main missions with fail type == 2. Not sure what it's for and the code looks weird (presumably shows no message and just one button OK which exits the mission), is it failsafe\unused code of some kind?
 7 - Pressed Retry\Restart\Yes on Confirm Skip\
 8 - Pressed Yes on Confirm Exit screen
 9 - State finished setup for restarting mission after Retry\Restart\Skip
 10 - Finished Retry\Restart\Skip
-11 - State after Retry\Restart\Skip for special missions: jewelry_prep2A, jewelry_prep1B, fbi4_prep1, agency_prep1, rural_bank_prep1 + State for when benchmark is running
+11 - State after Retry\Restart\Skip for special missions: jewelry_prep2A, jewelry_prep1B, fbi4_prep1, agency_prep1, rural_bank_prep1 + State after Exit pressed during Mission Replay
 12 - State after replay_controller termination 
 13 - Default state after starting replay_controller + state to terminate replay_controller after exiting the mission.
 ```
