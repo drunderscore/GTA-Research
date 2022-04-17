@@ -99,8 +99,8 @@ if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
 Here we can see that something called ``FORCE_CLEANUP`` is occured. You could say that ``FORCE_CLEANUP`` is an event sent from other scripts that signalizes that this script has to clean the things that it created (for example objects, vehicles, screen effects etc) and terminate.
 Other scripts (or the executable itself) call native ``void FORCE_CLEANUP(int cleanupFlags);`` to trigger the cleanup.
 
-As we can see, the script expects the cleanup with ``cleanupFlags == 83``. Cleanup flags are actually a bitfield, that means that we are expecting cleanups 64, 16, 2 and 1.
-With mods (by calling ``int GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP();`` every frame) we can find out that when the player dies or gets arrested ``force_cleanup(1)`` is called. (You could also check this in the exe itself probably). 
+As we can see, the script expects the cleanup with ``cleanupFlags == 83``. Cleanup flags are actually a bitfield, that means that we are expecting cleanups ``64``, ``16``, ``2`` and ``1``.
+With mods (by calling ``int GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP();`` every frame) we can find out that when the player dies or gets arrested ``force_cleanup(1)`` is called (You could also check this in the exe itself probably). 
 
 And that's it, that's how OM0 is achieved.
 
@@ -145,7 +145,7 @@ void func_130()//Position - 0x9710
 ```
 Here it resets all RC missions back to their original states thus breaking OM0.
 
-## Why we can't OM0 everything with OM0 S&F instance
+### Why we can't OM0 everything with OM0 S&F instance
 
 If when we finish the mission normally we end up with ``MISSION_TYPE_OFF_MISSION`` then why can't we start OM0 S&F instane, start main mission and finish S&F instance to get OM0 on main mission?
 
@@ -183,7 +183,7 @@ void func_176(var uParam0)//Position - 0x1FEB2
 }
 ```
 
-However, if we look back at the launcher_hunting termination we will see that ``Global_96440[iVar0].f_9`` will be set to -1 on death\arrest.
+However, if we look back at the ``launcher_hunting`` termination we will see that ``Global_96440[iVar0].f_9`` will be set to -1 on death\arrest.
 
 ```
 if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
@@ -215,7 +215,7 @@ void func_272(var uParam0)
 
 And this prevents us from setting MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
 
-## But what if we got OM0 without LAUNCH_MISSION_ID = -1?
+### But what if we got OM0 without LAUNCH_MISSION_ID = -1?
 
 Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
 
@@ -281,7 +281,7 @@ mission_repeat_controller
 
 It might be possible to exploit this somehow but as of this moment I have no idea how.
 
-## What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
+### What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
 Will this allow us to OM0 first mission using the second one? No. Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
 
