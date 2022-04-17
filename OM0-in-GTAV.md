@@ -43,7 +43,7 @@ If the parameter is true, sets the mission flag to true, if the parameter is fal
 ^ also, if the mission flag is already set, the function does nothing at all  
 ```
 
-``MISSION_TYPE`` is what we are gonna discuss today and ``MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
+``MISSION_TYPE`` is what we are gonna discuss in this research and ``MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
 What that means is you can't expect the exact same behaviour as in 3D-era GTA's, for example you can't save while OM0 (``MISSION_TYPE_OFF_MISSION``) with ``MISSION_FLAG == true``.
 
 *You could say that there are even more than 2 variables but those 2 are what resemble the old OM variable the most.
