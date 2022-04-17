@@ -341,7 +341,7 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 			{
 				case 5:
 				case 17:
-					return 1; //for MISSION_TYPE 1 we can only start from MISSION_TYPE 5 or 17
+					return 1; //for MISSION_TYPE 0 we can only start from MISSION_TYPE 5 or 17
 					break;
 			}
 			break;
@@ -349,6 +349,7 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 ```
 
 The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID`` (We know function names from the leaked script that has them).
+
 As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). 
 
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
@@ -358,3 +359,4 @@ skip this step completely by explicitly checking for those ``MISSION_TYPES`` whe
 
 Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
 
+There might be other exceptions but so far I haven't found any.
