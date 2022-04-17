@@ -52,7 +52,7 @@ What that means is you can't expect the exact same behaviour as in 3D-era GTA's,
 
 To get to OM0 state, player has to die or get arrested while starting S&F mission. Let's see why.
 
-First of all, unlike main mission that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in ``launcher_*`` scripts, where ``*`` is the internal name of the specific character's missions.
+First of all, unlike main missions that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in ``launcher_*`` scripts, where ``*`` is the internal name of the specific character's missions.
 For this research we'll use our favorite Cletus's mission Target Practice. Internally it's called ``hunting1`` and it is started from ``launcher_hunting``.
 
 Here, we quickly find the part that sets ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
