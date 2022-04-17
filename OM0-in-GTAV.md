@@ -96,8 +96,8 @@ if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
 }
 ```
 
-Here we can see that something called ``FORCE_CLEANUP`` is occured. You could say that ``FORCE_CLEANUP`` is an event sent from other scripts that signalizes that this script has to clean the things that it created (for example objects, vehicles, screen effects etc) and terminate.
-Other scripts call native ``void FORCE_CLEANUP(int cleanupFlags);`` to trigger the cleanup. It's worth noting that the executable itself can also set ``FORCE_CLEANUP`` flag.
+Here we can see that something called ``FORCE_CLEANUP`` is occurred. You could say that ``FORCE_CLEANUP`` is an event sent from other scripts or the executable that signalizes that this script has to clean the things that it created (for example objects, vehicles, screen effects etc) and terminate.
+Other scripts call native ``void FORCE_CLEANUP(int cleanupFlags);`` to trigger the cleanup.
 
 As we can see, the script expects the cleanup with ``cleanupFlags == 83``. Cleanup flags are actually a bitfield, that means that we are expecting cleanups ``64``, ``16``, ``2`` and ``1``.
 With mods (by calling ``int GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP();`` every frame) we can find out that when the player dies or gets arrested ``force_cleanup(1)`` is called (You could also check this in the exe itself probably). 
@@ -267,7 +267,9 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 What we see here is the function that changes ``MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID`` for the mission that called it. 
 And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the redundancy but let's assume that ``Global_34875`` is also ``LAST_LAUNCH_ID``.
 
-Now let's combine the information from both ``func_272`` and ``func_141``. What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
+Now let's combine the information from both ``func_272`` and ``func_141``.
+
+What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
 That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
 There are some exceptions to this rule however, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly (main for example) and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
@@ -348,7 +350,7 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 	}
 ```
 
-The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID`` (We know function names from the leaked script that has them).
+The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID``.
 
 As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). 
 
