@@ -8,9 +8,9 @@ Some research on OM0 in GTA V: how it's achieved in game, why OM0 instances "bre
 
 If you are reading this, you are probably familiar with concept of OM0 in 3D-era GTA's and know what OnMission variable is. So, what's different for GTA V?
 
-First of all, onMission is no longer a single variable but 2*: MISSION_TYPE and MISSION_FLAG. 
+First of all, onMission is no longer a single variable but 2\*: ``MISSION_TYPE`` and ``MISSION_FLAG``. 
 
-MISSION_TYPE or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
+``MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
 
 ```
 0 - Some Missions (Simeon Missions, Assassinations, Trevor Philips Industries, 
@@ -23,7 +23,8 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 6 - Friend Activity
 7 - Friend Activity
 8 - ???    
-9 - Taxi, Darts, One Of Carwashes, Races, Shooting Range, Thriathlon, BaseJumping, Yoga, Trafficking, Pilot School, Business Missions, Plane Stunting
+9 - Taxi, Darts, One Of Carwashes, Races, Shooting Range, Thriathlon, BaseJumping, Yoga,
+	Trafficking, Pilot School, Business Missions, Plane Stunting
 10 - Tennis, Golf, Strip Club Private Dance, Booty Call
 11 - ??? 
 12 - Exile City Denial
@@ -35,7 +36,7 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 18 - ??? Somehow related to friends_controller
 ```
 
-And MISSION_FLAG is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference] (https://docs.fivem.net/natives/):
+And ``MISSION_FLAG`` is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference] (https://docs.fivem.net/natives/):
 
 ```
 If true, the player can't save the game.   
