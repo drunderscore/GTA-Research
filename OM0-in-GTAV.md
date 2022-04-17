@@ -23,8 +23,7 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 6 - Friend Activity
 7 - Friend Activity
 8 - ???    
-9 - Taxi, Darts, One Of Carwashes, Races, Shooting Range, Thriathlon, BaseJumping, Yoga,
-	Trafficking, Pilot School, Business Missions, Plane Stunting
+9 - Taxi, Darts, One Of Carwashes, Races, Shooting Range, Thriathlon, BaseJumping, Yoga, Trafficking, Pilot School, Business Missions, Plane Stunting
 10 - Tennis, Golf, Strip Club Private Dance, Booty Call
 11 - ??? 
 12 - Exile City Denial
