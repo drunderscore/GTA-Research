@@ -150,7 +150,7 @@ Here it resets all RC missions back to their original states thus breaking OM0.
 
 If when we finish the mission normally we end up with ``MISSION_TYPE_OFF_MISSION`` then why can't we start OM0 S&F instane, start main mission and finish S&F instance to get OM0 on main mission?
 
-That's because S&F mission scripts will never set ``MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be -1.
+That's because S&F mission scripts will never set ``MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be ``-1``.
 ``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'missions' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``MISSION_TYPE``.
 
 It looks like this:
@@ -184,7 +184,7 @@ void func_176(var uParam0)//Position - 0x1FEB2
 }
 ```
 
-However, if we'll look back at the ``launcher_hunting`` termination we will see that ``Global_96440[iVar0].f_9`` will be set to -1 on death\arrest.
+However, if we'll look back at the ``launcher_hunting`` termination we will see that ``Global_96440[iVar0].f_9`` will be set to ``-1`` on death\arrest.
 
 ```
 if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
