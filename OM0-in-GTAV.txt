@@ -262,10 +262,84 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 }
 ```
 
-What we see here is the function that changes ``MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID``. 
-And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. (I'm not sure why the redundancy but let's assume that ``Global_34875`` is also ``LAST_LAUNCH_ID``).
+What we see here is the function that changes ``MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID`` for the mission that called it. 
+And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the redundancy but let's assume that ``Global_34875`` is also ``LAST_LAUNCH_ID``.
 
+Now let's combine the information from both ``func_272`` and ``func_141``. What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
+That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
+There are some exceptions to this rule however, some scripts set ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly (main for example) and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
 
+Those scripts are:
+```
+benchmark
+candidate_controller
+main
+mission_repeat_controller
+```
 
+It might be possible to exploit this somehow but as of this moment I have no idea how.
 
+## What if we somehow start another mission while MISSION_TYPE != MISSION_TYPE_OFF_MISSION
+
+Will this allow us to OM0 first mission using the second one? No. Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
+
+``` 
+int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//Position - 0x94FF
+{
+	...
+	if (iParam1 == 0)
+	{
+		if (func_145(0)) // return 0 if 
+		{
+			return 0; 
+		}
+		...
+		Global_34913 = iParam2; //MISSION_TYPE to iParam2
+		return 1;
+	}
+	...
+}
+
+int func_145(int iParam0) //__IS_CURRENTLY_ON_MISSION_TO_TYPE
+{
+	if (Global_34913 == 15)
+	{
+		return 0;
+	}
+	if (func_143(iParam0))
+	{
+		return 0;
+	}
+	return 1;
+}
+
+bool func_143(int iParam0)//__CAN_MISSION_TYPE_START_AGAINST_CURRENT_TYPE
+{
+	return func_144(iParam0, Global_34913);//__CAN_MISSION_TYPE_START_AGAINST_TYPE
+}
+
+int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
+{
+	if (iParam1 == 15)
+	{
+		return 1; //we can always start from MISSION_TYPE_OFF_MISSION
+	}
+	if (iParam0 == 15)
+	{
+		return 0;
+	}
+	switch (iParam0)
+	{
+		...
+		case 0:
+			switch (iParam1)
+			{
+				case 5:
+				case 17:
+					return 1; //for MISSION_TYPE 1 we can only start from MISSION_TYPE 5 or 17
+					break;
+			}
+			break;
+	}
+```
