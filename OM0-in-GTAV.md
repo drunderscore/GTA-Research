@@ -6,7 +6,7 @@ Some research on OM0 in GTA V: how it's achieved in game, why OM0 instances "bre
 
 ## What is OM0 in GTA V
 
-If you are reading this, you are probably familiar with concept of OM0 in 3D-era GTA's and know what OnMission variable is. So, what's different for GTA V?
+If you are reading this, you are probably familiar with concept of OM0 in 3D-era GTA's and know what ``OnMission`` variable is. So, what's different for GTA V?
 
 First of all, onMission is no longer a single variable but 2\*: ``MISSION_TYPE`` and ``MISSION_FLAG``. 
 
@@ -35,7 +35,7 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 18 - ??? Somehow related to friends_controller
 ```
 
-And ``MISSION_FLAG`` is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference] (https://docs.fivem.net/natives/):
+And ``MISSION_FLAG`` is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference](https://docs.fivem.net/natives/):
 
 ```
 If true, the player can't save the game.   
@@ -43,7 +43,7 @@ If the parameter is true, sets the mission flag to true, if the parameter is fal
 ^ also, if the mission flag is already set, the function does nothing at all  
 ```
 
-MISSION_TYPE is what we are gonna discuss today and ``MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
+``MISSION_TYPE`` is what we are gonna discuss today and ``MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
 What that means is you can't expect the exact same behaviour as in 3D-era GTA's, for example you can't save while OM0 (``MISSION_TYPE_OFF_MISSION``) with ``MISSION_FLAG == true``.
 
 *You could say that there are even more than 2 variables but those 2 are what resemble the old OM variable the most.
@@ -52,7 +52,7 @@ What that means is you can't expect the exact same behaviour as in 3D-era GTA's,
 
 To get to OM0 state, player has to die or get arrested while starting S&F mission. Let's see why.
 
-First of all, unlike main mission that [start from mission_triggerer scripts] (https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in launcher_* scripts, where * is the internal name of the specific character's missions.
+First of all, unlike main mission that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in launcher_* scripts, where * is the internal name of the specific character's missions.
 For this research we'll use our favorite Cletus's mission Target Practice. Internally it's called ``hunting1`` and it is started from ``launcher_hunting``.
 
 Here, we quickly find the part that sets MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
