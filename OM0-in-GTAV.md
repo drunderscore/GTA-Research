@@ -222,6 +222,7 @@ Even if we were to somehow bypass this, the game actually has a simple and smart
 
 Let's once again go back to our favorite ``func_272``:
 
+```
 void func_272(var uParam0)
 {
 	...
