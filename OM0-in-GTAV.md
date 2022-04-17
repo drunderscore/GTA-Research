@@ -124,7 +124,7 @@ Not sure what f_4 is but it's set to 1 when mission starts in rc launcher.
 This check is used every time we need to finish the script (force_cleanup, mission fail or completing the mission).
 Normally during OM0 we wouldn't pass this check, the function will continue it's execution and checkpoint will be set to 0/mf will trigger. 
 To get the broken state we need to start any script that sets ``MISSION_TYPE`` to anything other than ``15`` or ``17`` and then back to ``15``.
-That's because a script called randomchar_controller terminates when ``MISSION_TYPE != 15 || 17`` and then starts again when opposite condition is met. And when randomchar_controller starts, it executes this function:
+That's because a script called ``randomchar_controller`` terminates when ``MISSION_TYPE != 15 || 17`` and then starts again when opposite condition is met. And when ``randomchar_controller`` starts, it executes this function:
 
 ```
 void func_130()//Position - 0x9710
