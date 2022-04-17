@@ -82,22 +82,22 @@ If we search for references to this function, we'll only find one and it is righ
 
 ```
 if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
+{
+	func_253("Force cleanup [TERMINATING]");
+	if (Var0 != -1)
 	{
-		func_253("Force cleanup [TERMINATING]");
-		if (Var0 != -1)
+		if (Global_96440[Var0 /*10*/].f_9 != -1)
 		{
-			if (Global_96440[Var0 /*10*/].f_9 != -1)
-			{
-				func_253("Relinquishing candidate id...");
-				func_252(&(Global_96440[Var0 /*10*/].f_9)); //our function
-			}
+			func_253("Relinquishing candidate id...");
+			func_252(&(Global_96440[Var0 /*10*/].f_9)); //our function
 		}
-		func_240(&Var0, 1);
 	}
+	func_240(&Var0, 1);
+}
 ```
 
 Here we can see that something called ``FORCE_CLEANUP`` is occured. You could say that ``FORCE_CLEANUP`` is an event sent from other scripts that signalizes that this script has to clean the things that it created (for example objects, vehicles, screen effects etc) and terminate.
-Other scripts (or the executable itself) call native ``void FORCE_CLEANUP(int cleanupFlags);`` to trigger the cleanup.
+Other scripts call native ``void FORCE_CLEANUP(int cleanupFlags);`` to trigger the cleanup. It's worth noting that the executable itself can also set ``FORCE_CLEANUP`` flag.
 
 As we can see, the script expects the cleanup with ``cleanupFlags == 83``. Cleanup flags are actually a bitfield, that means that we are expecting cleanups ``64``, ``16``, ``2`` and ``1``.
 With mods (by calling ``int GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP();`` every frame) we can find out that when the player dies or gets arrested ``force_cleanup(1)`` is called (You could also check this in the exe itself probably). 
@@ -122,7 +122,8 @@ Not sure what f_4 is but it's set to 1 when mission starts in rc launcher.
 ```
 
 This check is used every time we need to finish the script (force_cleanup, mission fail or completing the mission).
-Normally during OM0 we wouldn't pass this check, the function will continue it's execution and checkpoint will be set to 0/mf will trigger. To get the broken state we need to start any script that sets ``MISSION_TYPE`` to anything other than 15 or 17 and then back to 15.
+Normally during OM0 we wouldn't pass this check, the function will continue it's execution and checkpoint will be set to 0/mf will trigger. 
+To get the broken state we need to start any script that sets ``MISSION_TYPE`` to anything other than ``15`` or ``17`` and then back to ``15``.
 That's because a script called randomchar_controller terminates when ``MISSION_TYPE != 15 || 17`` and then starts again when opposite condition is met. And when randomchar_controller starts, it executes this function:
 
 ```
@@ -145,12 +146,12 @@ void func_130()//Position - 0x9710
 ```
 Here it resets all RC missions back to their original states thus breaking OM0.
 
-### Why we can't OM0 everything with OM0 S&F instance
+## Why we can't OM0 everything with OM0 S&F instance
 
 If when we finish the mission normally we end up with ``MISSION_TYPE_OFF_MISSION`` then why can't we start OM0 S&F instane, start main mission and finish S&F instance to get OM0 on main mission?
 
-That's because S&F mission scripts will never set MISSION_TYPE back to 15 after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be -1.
-``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'mission' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``MISSION_TYPE``.
+That's because S&F mission scripts will never set ``MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be -1.
+``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'missions' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``MISSION_TYPE``.
 
 It looks like this:
 
@@ -183,7 +184,7 @@ void func_176(var uParam0)//Position - 0x1FEB2
 }
 ```
 
-However, if we look back at the ``launcher_hunting`` termination we will see that ``Global_96440[iVar0].f_9`` will be set to -1 on death\arrest.
+However, if we'll look back at the ``launcher_hunting`` termination we will see that ``Global_96440[iVar0].f_9`` will be set to -1 on death\arrest.
 
 ```
 if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
@@ -213,11 +214,11 @@ void func_272(var uParam0)
 }
 ```
 
-And this prevents us from setting MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
+And this prevents us from setting ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
-### But what if we got OM0 without LAUNCH_MISSION_ID = -1?
+## But what if we got OM0 without ``LAUNCH_MISSION_ID = -1``?
 
-Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
+Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
 Let's once again go back to our favorite ``func_272``:
 
@@ -269,7 +270,7 @@ And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the 
 Now let's combine the information from both ``func_272`` and ``func_141``. What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
 That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
-There are some exceptions to this rule however, some scripts set ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly (main for example) and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
+There are some exceptions to this rule however, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly (main for example) and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
 
 Those scripts are:
 ```
@@ -281,9 +282,11 @@ mission_repeat_controller
 
 It might be possible to exploit this somehow but as of this moment I have no idea how.
 
-### What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
+## What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
-Will this allow us to OM0 first mission using the second one? No. Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
+Will this allow us to OM0 first mission using the second one? No. 
+
+Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
 
 ``` 
 int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//Position - 0x94FF
@@ -291,9 +294,9 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 	...
 	if (iParam1 == 0)
 	{
-		if (func_145(0)) // return 0 if 
+		if (func_145(0)) 
 		{
-			return 0; 
+			return 0; // return 0 if can't start MISSION_TYPE 0 from current MISSION_TYPE
 		}
 		...
 		Global_34913 = iParam2; //MISSION_TYPE to iParam2
@@ -344,3 +347,14 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 			break;
 	}
 ```
+
+The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID`` (We know function names from the leaked script that has them).
+As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). 
+
+That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
+
+This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` and scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) 
+skip this step completely by explicitly checking for those ``MISSION_TYPES`` when they start. 
+
+Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
+
