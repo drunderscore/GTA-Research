@@ -2,13 +2,13 @@
 
 # OM0 in GTA V
 
-Some research on OM0 in GTA V: how it's achieved in game, why OM0 instances "break" and what limitations does it have.
+Some research on OM0 in GTA V: how it's achieved in game, why OM0 instances "break" and what limitations it has.
 
 ## What is OM0 in GTA V
 
 If you are reading this, you are probably familiar with concept of OM0 in 3D-era GTA's and know what ``OnMission`` variable is. So, what's different for GTA V?
 
-First of all, onMission is no longer a single variable but 2\*: ``MISSION_TYPE`` and ``MISSION_FLAG``. 
+First of all, ``OnMission`` is no longer a single variable but 2\*: ``MISSION_TYPE`` and ``MISSION_FLAG``. 
 
 ``MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
 
@@ -52,10 +52,10 @@ What that means is you can't expect the exact same behaviour as in 3D-era GTA's,
 
 To get to OM0 state, player has to die or get arrested while starting S&F mission. Let's see why.
 
-First of all, unlike main mission that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in launcher_* scripts, where * is the internal name of the specific character's missions.
+First of all, unlike main mission that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in ``launcher_*`` scripts, where ``*`` is the internal name of the specific character's missions.
 For this research we'll use our favorite Cletus's mission Target Practice. Internally it's called ``hunting1`` and it is started from ``launcher_hunting``.
 
-Here, we quickly find the part that sets MISSION_TYPE to MISSION_TYPE_OFF_MISSION.
+Here, we quickly find the part that sets ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
 ```
 void func_252(var uParam0)//Position - 0xD956
@@ -281,7 +281,7 @@ mission_repeat_controller
 
 It might be possible to exploit this somehow but as of this moment I have no idea how.
 
-## What if we somehow start another mission while MISSION_TYPE != MISSION_TYPE_OFF_MISSION
+## What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
 Will this allow us to OM0 first mission using the second one? No. Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
 
