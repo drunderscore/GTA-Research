@@ -13,11 +13,11 @@ First of all, ``OnMission`` is no longer a single variable but 2\*: ``MISSION_TY
 ``MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
 
 ```
-0 - Some Missions (Simeon Missions, Assassinations, Trevor Philips Industries, 
+0 - Some Main Missions (Simeon Missions, Assassinations, Trevor Philips Industries, 
 Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission Replays
-1 - ???    
+1 - ??? (Most likely completely unused)
 2 - Heist Prep missions
-3 - Some Missions
+3 - Some Main Missions
 4 - Towing, Bail Bond, S&F, Rampages, Hunting
 5 - Random Events + Altruist Cult
 6 - Friend Activity
@@ -32,7 +32,7 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 15 - Free Mode (MISSION_TYPE_OFF_MISSION)
 16 - ??? 
 17 - Switching characters
-18 - ??? Somehow related to friends_controller
+18 - Friend knockdown cutscene
 ```
 
 And ``MISSION_FLAG`` is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference](https://docs.fivem.net/natives/):
@@ -104,6 +104,45 @@ With mods (by calling ``int GET_CAUSE_OF_MOST_RECENT_FORCE_CLEANUP();`` every fr
 
 And that's it, that's how OM0 is achieved.
 
+### Why drowning
+
+As we know, we have to die while starting S&F mission. But you can't just pull out a c4 and blow yourself up. That's because ``launcher_hunting``  sets 2 types of invincibility, total invincibility and specific proofs:
+
+```
+entity::set_entity_invincible(player::player_ped_id(), 1);
+Sets a ped or an object totally invincible. It doesn't take any kind of damage. Peds will not ragdoll on explosions and the tazer animation won't apply either.
+
+entity::set_entity_proofs(player::player_ped_id(), true, true, true, true, true, false, 0, false);
+SET_ENTITY_PROOFS(Entity entity, BOOL bulletProof, BOOL fireProof, BOOL explosionProof, BOOL collisionProof, BOOL meleeProof, BOOL steamProof, BOOL p7, BOOL drownProof);
+```
+
+If you've watched GTA V speedruns before runners started to use Director Mode setup, then you know that we used to drown to get OM0. So why that works?
+
+That's because ``hunting1`` script itself will clean the invincibility for us before starting the cutscene. You'll probably expect to find something like ``set_entity_invincible(player::player_ped_id(), 0);`` but in reality there is another way to set\remove the invincibility,
+that's ``void SET_PLAYER_CONTROL(Player player, BOOL bHasControl, int flags);`` native. The game is kind enough to make you invincible when it takes away the control from you and makes you vulnerable when it gives control back.
+
+Luckily for us, ``hunting1`` gives us the control back before the cutscene, even though we've never lost it and the native itself makes us vulnerable unconditionally. Now that we are vulnerable, only proofs are left and if we look closely at the ``set_entity_proofs`` call 
+we'll see that we are actually not steam or drown proof.
+
+With that knowledge all that's left is to delay the cutscene from playing by interrupting Cletus's dialogue with Trevor's special ability or alt-tapping and drown.
+
+### Why Director Mode
+
+Drowning strat is rather slow because of the slow walk forced by ``hunting1`` and the fact that drowning itself is not fast. What can we do to make the process faster? Well, we still have proofs to deal with. 
+If we were to somehow disable both the proofs and the invincibility, we'll be able to blow ourselves up and significantly speed up the process of getting OM0. That's where Director Mode comes in.
+
+``director_mode`` script removes both invincibility and proofs after you close "Director Mode is not available whilst playing a mission." warning. This message occurs when you try to launch DM with ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION`` (+ few other special cases we don't care about here). 
+
+The plan here is simple: start DM just before you trigger S&F mission. Sounds easy but there are 2 problems: 
+
+First problem here is that the game checks ``MISSION_TYPE`` 2 times if you start DM from interactions menu. First, it is checked in ``main`` before launching ``director_mode`` script and the second time during the initialization of ``director_mode`` itself. 
+Only ``director_mode`` script removes the proofs, meaning that you have to pass first check before it starts and fail the second one to trigger removal of proofs. This alone requires close to frame perfect inputs from the player.
+
+The second problem is that ``launcher_hunting`` doesn't set proofs on the same frame as it changes ``MISSION_TYPE``. It first sets ``MISSION_TYPE`` and then it waits for ``hunting1`` script to load before setting the proofs. What that means is that we can end up in the situations where we successfully
+got the warning screen from ``director_mode`` but still have no proofs set. In this case, ``director_mode`` will remove the proofs only for the ``launcher_hunting`` to set them back in few frames.
+
+These two problems combined make this trick close to frame perfect but with clever setups and references it is still possible to execute it with some consistency.
+
 ## Why OM0 "breaks"
 
 In GTA V you can prevent OM0 instance of a mission from displaying mission failed\passed screen and resetting mission checkpoint value, we call this broken OM0. 
@@ -153,7 +192,7 @@ If when we finish the mission normally we end up with ``MISSION_TYPE_OFF_MISSION
 That's because S&F mission scripts will never set ``MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be ``-1``.
 ``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'missions' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``MISSION_TYPE``.
 
-It looks like this:
+Example from ``hunting1``:
 
 ```
 if (Global_96440[iVar0].f_9 == -1)
@@ -194,7 +233,7 @@ if (PLAYER::HAS_FORCE_CLEANUP_OCCURRED(83))
 	...
 }
 
-void func_272(var uParam0)
+void func_252(var uParam0)
 {
 	if (*uParam0 == -1)
 	{
@@ -220,10 +259,10 @@ And this prevents us from setting ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION
 
 Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
-Let's once again go back to our favorite ``func_272``:
+Let's once again go back to our favorite ``func_252``:
 
 ```
-void func_272(var uParam0)
+void func_252(var uParam0)
 {
 	...
 	if (!*uParam0 == Global_34875) //if LAUNCH_MISSION_ID != Global_34875
@@ -237,6 +276,8 @@ void func_272(var uParam0)
 ```
 
 Alright, so we won't get to setting ``MISSION_TYPE`` if ``LAUNCH_MISSION_ID`` is not equal to some ``Global_34875``. Let's find what this global does.
+
+From ``launcher_hunting``:
 
 ```
 iVar0 = func_141(&(Global_96440[iParam0 /*10*/].f_9), 1, 4, 0, 0); //LAUNCH_MISSION_ID is passed
@@ -267,7 +308,7 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 What we see here is the function that changes ``MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID`` for the mission that called it. 
 And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the redundancy but let's assume that ``Global_34875`` is also ``LAST_LAUNCH_ID``.
 
-Now let's combine the information from both ``func_272`` and ``func_141``.
+Now let's combine the information from both ``func_252`` and ``func_141``.
 
 What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
 That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
@@ -362,3 +403,48 @@ skip this step completely by explicitly checking for those ``MISSION_TYPES`` whe
 Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
 
 There might be other exceptions but so far I haven't found any.
+
+## Why S&F OM0 transfering works?
+
+You can actually 'transfer' OM0 from one S&F mission to another. To do this, you OM0 the first one then trigger the second one, fail the first one and exit the mission. After that the second S&F mission will start OM0-ed.
+
+So, having learned stuff from previous points you might wonder how this is possible. Actually, it's pretty simple, we just skip setting ``MISSION_TYPE`` completely.
+
+Let's see how this works in ``launcher_hunting``:
+
+```
+int func_2(int iParam0)//Position - 0x2EA
+{
+	if (!func_148())
+	{
+		while (!func_139(*iParam0)) //while (failed to set MISSION_TYPE)
+		{
+			...
+			SYSTEM::WAIT(0);
+		}
+	}
+	...
+	//rest of the function, mission script is launched here 
+}
+````
+
+Alright, what do we see here. ``func_139`` endlessly tries to set ``MISSION_TYPE`` until it succeeds. This means that the only way to skip setting it is failing ``if (!func_148())`` check.
+
+Let's check ``func_148()``:
+
+```
+int func_148()//Position - 0x98F3
+{
+	if (Global_89962 == 10 || Global_89962 == 9)
+	{
+		return 1;
+	}
+	return 0;
+}
+```
+
+What happens here is pretty obvious, ``Global_89962`` should be familiar to us from [mission fail & retry research](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Fail-Retry-Research.md) (actually globals are different there since different game versions were used, I'll probably update old research to use 1.27 sometime in the future). 
+
+``Global_89962`` is ``MISSION_FAILED_STATE`` and we check if we are not in 'after retry' state. Coincidentally, that's exactly the state we have after OM0-ing first S&F mission since we fail the mission to get OM0.
+
+That's all there is to it, setting ``MISSION_TYPE`` is completely skipped, leaving us in ``MISSION_TYPE_OFF_MISSION`` state in the second S&F mission.
