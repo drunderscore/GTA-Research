@@ -331,6 +331,8 @@ Will this allow us to OM0 first mission using the second one? No.
 
 Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
 
+For example for mission with ``MISSION_TYPE`` 0 (The same goes for other ``MISSION_TYPEs``, you can check which types a specific ``MISSION_TYPE`` can start from in ``func_144 //__CAN_MISSION_TYPE_START_AGAINST_TYPE``):
+
 ``` 
 int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//Position - 0x94FF
 {
