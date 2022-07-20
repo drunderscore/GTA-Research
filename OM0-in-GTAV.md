@@ -381,7 +381,7 @@ int func_145(int iParam0) //__IS_CURRENTLY_ON_MISSION_TO_TYPE
 {
 	if (Global_34913 == 15)
 	{
-		return 0;
+		return 0; //can always start from MISSION_TYPE_OFF_MISSION
 	}
 	if (func_143(iParam0))
 	{
@@ -422,7 +422,7 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 
 The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID``.
 
-As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). 
+As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). You can check what mission types a mission can start from in the table at the beginning of the doc.
 
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
 
