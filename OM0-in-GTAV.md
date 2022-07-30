@@ -65,7 +65,7 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 	<summary>Main Mission Type 0</summary>
 
 ```
-It is unknown what logic separates type 0 and type 3. Here's the list of type 0 missions, other main missions are either heist preparations or type 3.
+It is unknown what logic separates type 0 and type 3. Here's the list of all type 0 missions, other main missions are either heist preparations or type 3.
 
 Prologue
 Franklin & Lamar
