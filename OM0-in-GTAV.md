@@ -61,6 +61,46 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 | 	18	|  5, 6, 8, 15  |
 </details>
 
+<details>
+	<summary>Main Mission Type 0</summary>
+
+```
+It is unknown what logic separates type 0 and type 3. Here's the list of type 0 missions, other main missions are either heist preparations or type 3.
+
+Prologue
+Franklin & Lamar
+Repossesion
+Complications
+Hotel Assasination
+The Vice Assassination
+The Bus Assassination
+The Multi-Target Assassination
+The Construction Assassination
+Deep Inside
+Trevor Philips Industries
+Crystal Maze
+Father and Son
+Marriage Counseling
+Ending Choice
+The Third Way - Part 1
+The Third Way - Part 2
+Something Sensible
+The Time's Come
+Credits
+Three's Company
+By The Book
+Bury the Hatchet
+Fresh Meat
+The Good Husband
+Parenting 101
+Doting Dad
+All Dr. Friedlander missions
+Mr. Philips
+Nervous Ron
+Friends Reunited
+Architect's Plans
+```
+</details>
 
 And ``MISSION_FLAG`` is just a bool value set with native ``void SET_MISSION_FLAG(BOOL toggle);`` and here's some info from [FiveM native reference](https://docs.fivem.net/natives/):
 
