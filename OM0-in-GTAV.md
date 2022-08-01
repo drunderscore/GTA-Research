@@ -59,6 +59,8 @@ Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission
 | 	16	| 0-6, 8, 11, 12, 15-18 |
 | 	17	| 5, 12, 15, 17  |
 | 	18	|  5, 6, 8, 15  |
+	
+You can't actually "launch" Mission Type 15 from any Mission Type, only reset to it. 
 </details>
 
 <details>
