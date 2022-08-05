@@ -13,8 +13,7 @@ First of all, ``OnMission`` is no longer a single variable but 2\*: ``MISSION_TY
 ``MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
 
 ```
-0 - Some Main Missions (Simeon Missions, Assassinations, Trevor Philips Industries, 
-Crystal Maze, Deep Inside, Friedlender etc), House Intro Cutscenes, Main Mission Replays
+0 - Some Main Missions (check the full list below), House Intro Cutscenes, Main Mission Replays
 1 - ??? (Most likely completely unused)
 2 - Heist Prep missions
 3 - Some Main Missions
@@ -379,20 +378,10 @@ And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the 
 
 Now let's combine the information from both ``func_252`` and ``func_141``.
 
-What we get is this: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
+What we get is this rule: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
 That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
-There are some exceptions to this rule however, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly (main for example) and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
-
-Those scripts are:
-```
-benchmark
-candidate_controller
-main
-mission_repeat_controller
-```
-
-It might be possible to exploit this somehow but as of this moment I have no idea how.
+There are exceptions to this rule, check [exceptions](Exceptions-and-Main-Mission-OM0) for more info.
 
 ## What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
@@ -468,13 +457,6 @@ As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MIS
 
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
 
-This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` and scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) 
-skip this step completely by explicitly checking for those ``MISSION_TYPES`` when they start. 
-
-Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
-
-There might be other exceptions but so far I haven't found any.
-
 ## Why S&F OM0 transfering works?
 
 You can actually 'transfer' OM0 from one S&F mission to another. To do this, you OM0 the first one then trigger the second one, fail the first one and exit the mission. After that the second S&F mission will start OM0-ed.
@@ -519,3 +501,32 @@ What happens here is pretty obvious, ``Global_89962`` should be familiar to us f
 ``Global_89962`` is ``MISSION_FAILED_STATE`` and we check if we are not in 'after retry' state. Coincidentally, that's exactly the state we have after OM0-ing first S&F mission since we fail the mission to get OM0.
 
 That's all there is to it, setting ``MISSION_TYPE`` is completely skipped, leaving us in ``MISSION_TYPE_OFF_MISSION`` state in the second S&F mission.
+
+## Exceptions and Main Mission OM0
+
+Rule 1: Only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``.
+
+There are exceptions to this rule, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
+
+Those scripts are:
+```
+benchmark - implicitly
+candidate_controller - implicitly
+main - implicitly and explicitly (most likely when switching to Online)
+mission_repeat_controller - implicitly and explicitly
+flow_controller - explicitly, when main mission is passed or exited
+```
+
+The most interesting for us is of course ``flow_controller`` since that would mean that passing or exiting main mission can OM0 anything, including other main missions. But to do that we first need to change ``MISSION_TYPE`` of the initial Main Mission itself, here is where rule 2 execption comes in.
+
+Rule 2: You can only change ``MISSION_TYPE`` if current ``MISSION_TYPE`` allows it.
+
+This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``MISSION_TYPE`` to 6 and doesn't check for ``MISSION_TYPE`` changes. That's during a cutscene when you visit a bar. 
+
+
+Scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) skip this step completely by explicitly checking for those ``MISSION_TYPES`` when they start. 
+
+Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
+
+There might be other exceptions but so far I haven't found any.
+
