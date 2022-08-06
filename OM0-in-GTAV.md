@@ -1,4 +1,4 @@
-##### This research was done on patch 1.27,
+##### This research was done on patch 1.27.
 
 # OM0 in GTA V
 
@@ -8,9 +8,9 @@ Some research on OM0 in GTA V: how it's achieved in game, why OM0 instances "bre
 
 If you are reading this, you are probably familiar with concept of OM0 in 3D-era GTA's and know what ``OnMission`` variable is. So, what's different for GTA V?
 
-First of all, ``OnMission`` is no longer a single variable but 2\*: ``MISSION_TYPE`` and ``MISSION_FLAG``. 
+First of all, ``OnMission`` is no longer a single variable but 2\*: ``CURRENT_MISSION_TYPE`` and ``MISSION_FLAG``. 
 
-``MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18). Those values are:
+``CURRENT_MISSION_TYPE`` or ``Global_34913`` is an enum (or int value from 0 to 18) that represents different Mission Types. Those Mission Types are:
 
 ```
 0 - Some Main Missions (check the full list below), House Intro Cutscenes, Main Mission Replays
@@ -111,7 +111,7 @@ If the parameter is true, sets the mission flag to true, if the parameter is fal
 ^ also, if the mission flag is already set, the function does nothing at all  
 ```
 
-``MISSION_TYPE`` is what we are gonna discuss in this research and ``MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
+``CURRENT_MISSION_TYPE`` is what we are gonna discuss in this research and ``CURRENT_MISSION_TYPE == 15`` or ``MISSION_TYPE_OFF_MISSION`` is what we call OM0.
 What that means is you can't expect the exact same behaviour as in 3D-era GTA's, for example you can't save while OM0 (``MISSION_TYPE_OFF_MISSION``) with ``MISSION_FLAG == true``.
 
 *You could say that there are even more than 2 variables but those 2 are what resemble the old OM variable the most.
@@ -123,7 +123,7 @@ To get to OM0 state, player has to die or get arrested while starting S&F missio
 First of all, unlike main missions that [start from mission_triggerer scripts](https://github.com/drunderscore/GTA-Research/blob/master/Mission-Triggering-Research-And-Bugs%20.md), S&F missions are triggered in ``launcher_*`` scripts, where ``*`` is the internal name of the specific character's missions.
 For this research we'll use our favorite Cletus's mission Target Practice. Internally it's called ``hunting1`` and it is started from ``launcher_hunting``.
 
-Here, we quickly find the part that sets ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
+Here, we quickly find the part that sets ``CURRENT_MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
 ```
 void func_252(var uParam0)//Position - 0xD956
@@ -140,7 +140,7 @@ void func_252(var uParam0)//Position - 0xD956
 	*uParam0 = -1;
 	Global_34874 = 0;
 	Global_34876 = 0;
-	Global_34913 = 15; //MISSION_TYPE_OFF_MISSION
+	Global_34913 = 15; //CURRENT_MISSION_TYPE = MISSION_TYPE_OFF_MISSION
 	Global_54747 = 0;
 	Global_54748 = 0;
 }
@@ -199,14 +199,14 @@ With that knowledge all that's left is to delay the cutscene from playing by int
 Drowning strat is rather slow because of the slow walk forced by ``hunting1`` and the fact that drowning itself is not fast. What can we do to make the process faster? Well, we still have proofs to deal with. 
 If we were to somehow disable both the proofs and the invincibility, we'll be able to blow ourselves up and significantly speed up the process of getting OM0. That's where Director Mode comes in.
 
-``director_mode`` script removes both invincibility and proofs after you close "Director Mode is not available whilst playing a mission." warning. This message occurs when you try to launch DM with ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION`` (+ few other special cases we don't care about here). 
+``director_mode`` script removes both invincibility and proofs after you close "Director Mode is not available whilst playing a mission." warning. This message occurs when you try to launch DM with ``CURRENT_MISSION_TYPE != MISSION_TYPE_OFF_MISSION`` (+ few other special cases we don't care about here). 
 
 The plan here is simple: start DM just before you trigger S&F mission. Sounds easy but there are 2 problems: 
 
-First problem here is that the game checks ``MISSION_TYPE`` 2 times if you start DM from interactions menu. First, it is checked in ``main`` before launching ``director_mode`` script and the second time during the initialization of ``director_mode`` itself. 
+First problem here is that the game checks ``CURRENT_MISSION_TYPE`` 2 times if you start DM from interactions menu. First, it is checked in ``main`` before launching ``director_mode`` script and the second time during the initialization of ``director_mode`` itself. 
 Only ``director_mode`` script removes the proofs, meaning that you have to pass first check before it starts and fail the second one to trigger removal of proofs. This alone requires close to frame perfect inputs from the player.
 
-The second problem is that ``launcher_hunting`` doesn't set proofs on the same frame as it changes ``MISSION_TYPE``. It first sets ``MISSION_TYPE`` and then it waits for ``hunting1`` script to load before setting the proofs. What that means is that we can end up in the situations where we successfully
+The second problem is that ``launcher_hunting`` doesn't set proofs on the same frame as it changes ``CURRENT_MISSION_TYPE``. It first sets ``CURRENT_MISSION_TYPE`` and then it waits for ``hunting1`` script to load before setting the proofs. What that means is that we can end up in the situations where we successfully
 got the warning screen from ``director_mode`` but still have no proofs set. In this case, ``director_mode`` will remove the proofs only for the ``launcher_hunting`` to set them back in few frames.
 
 These two problems combined make this trick close to frame perfect but with clever setups and references it is still possible to execute it with some consistency.
@@ -230,8 +230,8 @@ Not sure what f_4 is but it's set to 1 when mission starts in rc launcher.
 
 This check is used every time we need to finish the script (force_cleanup, mission fail or completing the mission).
 Normally during OM0 we wouldn't pass this check, the function will continue it's execution and checkpoint will be set to 0/mf will trigger. 
-To get the broken state we need to start any script that sets ``MISSION_TYPE`` to anything other than ``15`` or ``17`` and then back to ``15``.
-That's because a script called ``randomchar_controller`` terminates when ``MISSION_TYPE != 15 || 17`` and then starts again when opposite condition is met. And when ``randomchar_controller`` starts, it executes this function:
+To get the broken state we need to start any script that sets ``CURRENT_MISSION_TYPE`` to anything other than ``15`` or ``17`` and then back to ``15``.
+That's because a script called ``randomchar_controller`` terminates when ``CURRENT_MISSION_TYPE != 15 || 17`` and then starts again when opposite condition is met. And when ``randomchar_controller`` starts, it executes this function:
 
 ```
 void func_130()//Position - 0x9710
@@ -257,8 +257,8 @@ Here it resets all RC missions back to their original states thus breaking OM0.
 
 If when we finish the mission normally we end up with ``MISSION_TYPE_OFF_MISSION`` then why can't we start OM0 S&F instane, start main mission and finish S&F instance to get OM0 on main mission?
 
-That's because S&F mission scripts will never set ``MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be ``-1``.
-``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'missions' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``MISSION_TYPE``.
+That's because S&F mission scripts will never set ``CURRENT_MISSION_TYPE`` back to ``15`` after OM0 because there is a check for ``Global_96440[iVar0].f_9`` to not be ``-1``.
+``Global_96440[iVar0].f_9`` is the index that shows order in which 'mission' scripts were launched, let's call it ``LAUNCH_MISSION_ID``. For example if we were to start 5 'missions' before starting S&F mission, this variable will be 6. In this context mission is anything that modifies ``CURRENT_MISSION_TYPE``.
 
 Example from ``hunting1``:
 
@@ -321,11 +321,11 @@ void func_252(var uParam0)
 }
 ```
 
-And this prevents us from setting ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
+And this prevents us from setting ``CURRENT_MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
 ## But what if we got OM0 without ``LAUNCH_MISSION_ID = -1``?
 
-Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set ``MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
+Even if we were to somehow bypass this, the game actually has a simple and smart way to check if we can set ``CURRENT_MISSION_TYPE`` to ``MISSION_TYPE_OFF_MISSION``.
 
 Let's once again go back to our favorite ``func_252``:
 
@@ -343,7 +343,7 @@ void func_252(var uParam0)
 }
 ```
 
-Alright, so we won't get to setting ``MISSION_TYPE`` if ``LAUNCH_MISSION_ID`` is not equal to some ``Global_34875``. Let's find what this global does.
+Alright, so we won't get to setting ``CURRENT_MISSION_TYPE`` if ``LAUNCH_MISSION_ID`` is not equal to some ``Global_34875``. Let's find what this global does.
 
 From ``launcher_hunting``:
 
@@ -363,7 +363,7 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 		Global_34877++; //LAST_LAUNCH_ID++
 		*uParam0 = Global_34877; //LAUNCH_MISSION_ID = LAST_LAUNCH_ID++
 		...
-		Global_34913 = iParam2; //MISSION_TYPE to iParam2
+		Global_34913 = iParam2; //CURRENT_MISSION_TYPE to iParam2
 		Global_34875 = *uParam0; //Global_34875 = LAUNCH_MISSION_ID
 		Global_34876 = iParam4;
 		Global_34874 = 0;
@@ -373,23 +373,23 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 }
 ```
 
-What we see here is the function that changes ``MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID`` for the mission that called it. 
+What we see here is the function that changes ``CURRENT_MISSION_TYPE`` to the desired value when we start any 'mission' script. Every time it is called, it increments ``LAST_LAUNCH_ID`` and puts it into ``LAUNCH_MISSION_ID`` for the mission that called it. 
 And it also stores ``LAST_LAUNCH_ID`` to ``Global_34875``. I'm not sure why the redundancy but let's assume that ``Global_34875`` is also ``LAST_LAUNCH_ID``.
 
 Now let's combine the information from both ``func_252`` and ``func_141``.
 
-What we get is this rule: only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
-That means that if we start main mission while OM0 S&F only main mission will be able to set ``MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
+What we get is this rule: Only the last mission that changed ``CURRENT_MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
+That means that if we start main mission while OM0 S&F only main mission will be able to set ``CURRENT_MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
-There are exceptions to this rule, check [exceptions](Exceptions-and-Main-Mission-OM0) for more info.
+There are exceptions to this rule, check [exceptions](exceptions-and-main-mission-om0) for more info.
 
-## What if we somehow start another mission while ``MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
+## What if we somehow start another mission while ``CURRENT_MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
 Will this allow us to OM0 first mission using the second one? No. 
 
-Remember the function that sets ``MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
+Remember the function that sets ``CURRENT_MISSION_TYPE`` to the desired value? There is a check that will prevent us from doing that in there.
 
-For example for mission with ``MISSION_TYPE`` 0 (The same goes for other ``MISSION_TYPEs``, you can check which types a specific ``MISSION_TYPE`` can start from in ``func_144 //__CAN_MISSION_TYPE_START_AGAINST_TYPE``):
+For example for a mission with ``MISSION_TYPE`` ``0``:
 
 ``` 
 int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//Position - 0x94FF
@@ -399,10 +399,10 @@ int func_141(var uParam0, int iParam1, int iParam2, bool bParam3, int iParam4)//
 	{
 		if (func_145(0)) 
 		{
-			return 0; // return 0 if can't start MISSION_TYPE 0 from current MISSION_TYPE
+			return 0; // return 0 if can't start MISSION_TYPE 0 from CURRENT_MISSION_TYPE
 		}
 		...
-		Global_34913 = iParam2; //MISSION_TYPE to iParam2
+		Global_34913 = iParam2; //CURRENT_MISSION_TYPE = iParam2
 		return 1;
 	}
 	...
@@ -451,17 +451,20 @@ int func_144(int iParam0, int iParam1)//__CAN_MISSION_TYPE_START_AGAINST_TYPE
 	}
 ```
 
-The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before setting the ``MISSION_TYPE`` to the value we want and updating ``LAST_LAUNCH_ID``.
+The game checks if we can launch a mission with ``MISSION_TYPE`` ``0`` before changing ``CURRENT_MISSION_TYPE`` value and updating ``LAST_LAUNCH_ID``.
 
-As we can see in the code ``MISSION_TYPE`` ``0`` can only start if current ``MISSION_TYPE`` is ``15`` (``MISSION_TYPE_OFF_MISSION``), ``17`` (``MISSION_TYPE_SWITCH``) or ``5`` (``MISSION_TYPE_RANDOM_EVENT``). You can check what mission types a mission can start from in the table at the beginning of the doc.
+As we can see in the code ``MISSION_TYPE`` ``0`` can only start if ``CURRENT_MISSION_TYPE`` is ``15 - MISSION_TYPE_OFF_MISSION``, ``17 - MISSION_TYPE_SWITCH`` or ``5 - MISSION_TYPE_RANDOM_EVENT``. You can check what mission types a mission can start from in the table at the beginning of the doc.
 
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
+
+From this we can deduce a 2-nd rule: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.
+[exceptions](exceptions-and-main-mission-om0)
 
 ## Why S&F OM0 transfering works?
 
 You can actually 'transfer' OM0 from one S&F mission to another. To do this, you OM0 the first one then trigger the second one, fail the first one and exit the mission. After that the second S&F mission will start OM0-ed.
 
-So, having learned stuff from previous points you might wonder how this is possible. Actually, it's pretty simple, we just skip setting ``MISSION_TYPE`` completely.
+So, having learned stuff from previous points you might wonder how this is possible. Actually, it's pretty simple, we just skip setting ``CURRENT_MISSION_TYPE`` completely.
 
 Let's see how this works in ``launcher_hunting``:
 
@@ -470,7 +473,7 @@ int func_2(int iParam0)//Position - 0x2EA
 {
 	if (!func_148())
 	{
-		while (!func_139(*iParam0)) //while (failed to set MISSION_TYPE)
+		while (!func_139(*iParam0)) //while (failed to set CURRENT_MISSION_TYPE)
 		{
 			...
 			SYSTEM::WAIT(0);
@@ -481,7 +484,7 @@ int func_2(int iParam0)//Position - 0x2EA
 }
 ````
 
-Alright, what do we see here. ``func_139`` endlessly tries to set ``MISSION_TYPE`` until it succeeds. This means that the only way to skip setting it is failing ``if (!func_148())`` check.
+Alright, what do we see here. ``func_139`` endlessly tries to set ``CURRENT_MISSION_TYPE`` until it succeeds. This means that the only way to skip setting it is failing ``if (!func_148())`` check.
 
 Let's check ``func_148()``:
 
@@ -500,11 +503,11 @@ What happens here is pretty obvious, ``Global_89962`` should be familiar to us f
 
 ``Global_89962`` is ``MISSION_FAILED_STATE`` and we check if we are not in 'after retry' state. Coincidentally, that's exactly the state we have after OM0-ing first S&F mission since we fail the mission to get OM0.
 
-That's all there is to it, setting ``MISSION_TYPE`` is completely skipped, leaving us in ``MISSION_TYPE_OFF_MISSION`` state in the second S&F mission.
+That's all there is to it, setting ``CURRENT_MISSION_TYPE`` is completely skipped, leaving us in ``MISSION_TYPE_OFF_MISSION`` state in the second S&F mission.
 
 ## Exceptions and Main Mission OM0
 
-Rule 1: Only the last mission that changed ``MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``.
+*Rule 1: Only the last mission that changed ``CURRENT_MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``.
 
 There are exceptions to this rule, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
 
@@ -517,16 +520,17 @@ mission_repeat_controller - implicitly and explicitly
 flow_controller - explicitly, when main mission is passed or exited
 ```
 
-The most interesting for us is of course ``flow_controller`` since that would mean that passing or exiting main mission can OM0 anything, including other main missions. But to do that we first need to change ``MISSION_TYPE`` of the initial Main Mission itself, here is where rule 2 execption comes in.
+The most interesting for us is of course ``flow_controller`` since that would mean that passing or exiting main mission can OM0 anything, including other main missions. But to do that we first need to change ``CURRENT_MISSION_TYPE`` during the initial Main Mission itself, here is where rule 2 exception comes in.
 
-Rule 2: You can only change ``MISSION_TYPE`` if current ``MISSION_TYPE`` allows it.
+*Rule 2: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.
 
-This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``MISSION_TYPE`` to 6 and doesn't check for ``MISSION_TYPE`` changes. That's during a cutscene when you visit a bar. 
+This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``CURRENT_MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``CURRENT_MISSION_TYPE`` to 6 and doesn't check for ``CURRENT_MISSION_TYPE`` changes. That's during a cutscene when you visit a bar. 
+
+Knowing that we can do smth like this: 
 
 
-Scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) skip this step completely by explicitly checking for those ``MISSION_TYPES`` when they start. 
+Scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) skip this step completely by explicitly checking for Hangout ``MISSION_TYPES`` when they start. 
 
 Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
 
 There might be other exceptions but so far I haven't found any.
-
