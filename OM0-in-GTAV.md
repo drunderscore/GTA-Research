@@ -381,7 +381,7 @@ Now let's combine the information from both ``func_252`` and ``func_141``.
 What we get is this rule: Only the last mission that changed ``CURRENT_MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``. 
 That means that if we start main mission while OM0 S&F only main mission will be able to set ``CURRENT_MISSION_TYPE`` back to ``MISSION_TYPE_OFF_MISSION``.
 
-There are exceptions to this rule, check [exceptions](exceptions-and-main-mission-om0) for more info.
+There are exceptions to this rule, check [exceptions](#exceptions-and-main-mission-om0) for more info.
 
 ## What if we somehow start another mission while ``CURRENT_MISSION_TYPE != MISSION_TYPE_OFF_MISSION``
 
@@ -458,7 +458,7 @@ As we can see in the code ``MISSION_TYPE`` ``0`` can only start if ``CURRENT_MIS
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
 
 From this we can deduce a 2-nd rule: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.
-[exceptions](exceptions-and-main-mission-om0)
+[exceptions](#exceptions-and-main-mission-om0)
 
 ## Why S&F OM0 transfering works?
 
@@ -507,7 +507,7 @@ That's all there is to it, setting ``CURRENT_MISSION_TYPE`` is completely skippe
 
 ## Exceptions and Main Mission OM0
 
-*Rule 1: Only the last mission that changed ``CURRENT_MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``.
+*Rule 1: Only the last mission that changed ``CURRENT_MISSION_TYPE`` can set it back to ``MISSION_TYPE_OFF_MISSION``.*
 
 There are exceptions to this rule, some scripts set ``MISSION_TYPE_OFF_MISSION`` unconditionally, sometimes explicitly and sometimes implicitly by passing ``LAST_LAUNCH_ID`` itself as ``LAUNCH_MISSION_ID``.
 
@@ -520,17 +520,20 @@ mission_repeat_controller - implicitly and explicitly
 flow_controller - explicitly, when main mission is passed or exited
 ```
 
-The most interesting for us is of course ``flow_controller`` since that would mean that passing or exiting main mission can OM0 anything, including other main missions. But to do that we first need to change ``CURRENT_MISSION_TYPE`` during the initial Main Mission itself, here is where rule 2 exception comes in.
+The most interesting for us is of course ``flow_controller`` since that would mean that passing or exiting main mission can OM0 anything, including other main missions. But to do that we first need to change ``CURRENT_MISSION_TYPE`` during the initial main mission itself, here is where rule 2 exception comes in.
 
-*Rule 2: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.
+*Rule 2: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.*
 
-This, of course, also has exceptions... or at least one. ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``CURRENT_MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``CURRENT_MISSION_TYPE`` to 6 and doesn't check for ``CURRENT_MISSION_TYPE`` changes. That's during a cutscene when you visit a bar. 
+This also has exceptions... or at least one (there might be other exceptions but so far I haven't found any). 
 
-Knowing that we can do smth like this: 
+``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``CURRENT_MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``CURRENT_MISSION_TYPE`` to ``6`` and doesn't check for ``CURRENT_MISSION_TYPE`` changes. That is during a cutscene when you visit a bar. 
 
+Knowing that we can do smth like this: [video](https://youtu.be/u0VWlZ-wiMs)
 
-Scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) skip this step completely by explicitly checking for Hangout ``MISSION_TYPES`` when they start. 
+There is a lot happening in the video, here's the most important parts for us: we get BZ Gas Grenades mission to ``MISSION_TYPE`` ``6``, then trigger Bugstars Van mission while it's still running and OM0 it by finishing BZ Gas Grenades. We do the same for Long Stretch but instead of passing Bugstars Van, we OM0 Long Stretch by failing and exiting.
+
+The main takeaway is: you can OM0 anything with main mission pass\exit and you can chain OM0 to other main missions as long as they are available on the map.
+
+Sidenote: scripts that usually set their own ``MISSION_TYPE`` (stripclub, golf, darts) skip this step completely by explicitly checking for Hangout ``MISSION_TYPES`` when they start. 
 
 Because of that ``friendactivity`` still has ``LAST_LAUNCH_ID`` and can set ``MISSION_TYPE_OFF_MISSION``. That's why you can [OM0 stripclub](https://youtu.be/SdyrM0q9jfk) script.
-
-There might be other exceptions but so far I haven't found any.
