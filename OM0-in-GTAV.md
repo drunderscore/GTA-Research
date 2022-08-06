@@ -458,7 +458,7 @@ As we can see in the code ``MISSION_TYPE`` ``0`` can only start if ``CURRENT_MIS
 That's it, we can't start other missions while we are not in freemode\switching\have an ongoing random event.
 
 From this we can deduce a 2-nd rule: You can only set ``CURRENT_MISSION_TYPE`` to a new value if ``CURRENT_MISSION_TYPE`` allows it.
-[exceptions](#exceptions-and-main-mission-om0)
+[Exceptions.](#exceptions-and-main-mission-om0)
 
 ## Why S&F OM0 transfering works?
 
