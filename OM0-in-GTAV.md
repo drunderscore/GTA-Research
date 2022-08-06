@@ -526,7 +526,7 @@ The most interesting for us is of course ``flow_controller`` since that would me
 
 This also has exceptions... or at least one (there might be other exceptions but so far I haven't found any). 
 
-``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``CURRENT_MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``CURRENT_MISSION_TYPE`` to ``6`` and doesn't check for ``CURRENT_MISSION_TYPE`` changes. That is during a cutscene when you visit a bar. 
+Hangout script ``friendactivity`` unconditionally switches between ``MISSION_TYPE`` ``6`` and ``7`` when you start\finish the activity. Usually, we can't exploit this since ``friend_activity`` checks for ``CURRENT_MISSION_TYPE`` changes and terminates but luckily for us there is a state where it both sets ``CURRENT_MISSION_TYPE`` to ``6`` and doesn't check for ``CURRENT_MISSION_TYPE`` changes. That is during a cutscene when you visit a bar. 
 
 Knowing that we can do smth like this: [video](https://youtu.be/u0VWlZ-wiMs)
 
