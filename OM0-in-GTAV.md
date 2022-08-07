@@ -15,7 +15,7 @@ First of all, ``OnMission`` is no longer a single variable but 2\*: ``CURRENT_MI
 ```
 0 - Some Main Missions (check the full list below), House Intro Cutscenes, Main Mission Replays
 1 - ??? (Most likely completely unused)
-2 - Heist Prep missions
+2 - Heist Prep Missions
 3 - Some Main Missions
 4 - Towing, Bail Bond, S&F, Rampages, Hunting
 5 - Random Events + Altruist Cult
@@ -27,7 +27,7 @@ First of all, ``OnMission`` is no longer a single variable but 2\*: ``CURRENT_MI
 11 - ??? 
 12 - Exile City Denial
 13 - Peyote Plants
-14 - Director's mode
+14 - Director Mode
 15 - Free Mode (MISSION_TYPE_OFF_MISSION)
 16 - ??? 
 17 - Switching characters
